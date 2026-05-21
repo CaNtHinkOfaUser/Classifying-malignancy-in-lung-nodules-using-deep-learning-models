@@ -29,7 +29,7 @@ df = pd.read_csv(metadata)
 print("Start")
 
 for index, row in df.iterrows():
-    if row["Modality"] == "CT" and row["Patient ID"] == "LIDC-IDRI-0132": # to be changed
+    if row["Modality"] == "CT" and row["Patient ID"] == "LIDC-IDRI-0001": # to be changed
         patient_id = row["Patient ID"]
         patient_folder = dataset_folder / patient_id
         series_instance_uid = row["Series Instance UID"]

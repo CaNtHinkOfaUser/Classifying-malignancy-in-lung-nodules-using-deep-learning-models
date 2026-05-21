@@ -1,0 +1,8 @@
+# Auto-generated YOLO dataset config
+path: /Users/Rai/shape_dataset
+train: images/train
+val:   images/val
+test:  images/test
+
+nc: 3
+names: ['rectangle', 'triangle', 'circle']

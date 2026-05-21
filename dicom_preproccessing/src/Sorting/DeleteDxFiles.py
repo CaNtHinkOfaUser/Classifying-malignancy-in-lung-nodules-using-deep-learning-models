@@ -1,7 +1,4 @@
-<<<<<<< HEAD:dicom_preproccessing/src/DeleteDxFiles.py
-=======
 # Emmaus
->>>>>>> b1922dd46b2e62e12c66a943400137b76c02d7ff:dicom_preproccessing/src/Sorting/DeleteDxFiles.py
 
 from pathlib import Path
 import pandas as pd

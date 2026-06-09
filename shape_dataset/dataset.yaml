@@ -1,5 +1,5 @@
 # Auto-generated YOLO dataset config
-path: /Users/Rai/shape_dataset
+path: /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/shape_dataset
 train: images/train
 val:   images/val
 test:  images/test

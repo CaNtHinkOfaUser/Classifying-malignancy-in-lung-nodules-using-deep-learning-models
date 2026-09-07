@@ -23,15 +23,15 @@ def apply_window(img: np.ndarray, window_level=-600, window_width=1500):
     return windowed_img
 
 project_folder = Path(__file__).parent.parent.parent
-dataset_folder = project_folder / "lidc_idri" # to be changed
-new_dataset_folder = project_folder / "LIDC-IDRI" # to be changed
+dataset_folder = Path("/Volumes/Expansion/lidc_idri")
+new_dataset_folder = Path("/Volumes/Expansion/LIDC-IDRI")
 metadata = project_folder / "data" / "metadata.csv"
 df = pd.read_csv(metadata)
 
 print("Start")
 
 for index, row in df.iterrows():
-    if row["Modality"] == "CT" and row["Patient ID"] == "LIDC-IDRI-0001": # to be changed
+    if row["Modality"] == "CT":
         patient_id = row["Patient ID"]
         patient_folder = dataset_folder / patient_id
         series_instance_uid = row["Series Instance UID"]

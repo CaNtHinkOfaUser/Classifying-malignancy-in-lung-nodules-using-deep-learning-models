@@ -161,11 +161,13 @@ def cluster_to_rows(cluster, merged_id):
     members = cluster["members"]
     first = members[0]
     base = {
-        "patient_id": first["patient_id"],
+        "patient_id":         first["patient_id"],
         "series_instance_uid": first["series_instance_uid"],
-        "merged_nodule_id": merged_id,
-        "num_readers": len(cluster["readers"]),
-        "malignancy": round(sum(m["malignancy"] for m in members) / len(members), 3),
+        "merged_nodule_id":   merged_id,
+        "num_readers":        len(cluster["readers"]),
+        "ratings":            ";".join(str(int(m["malignancy"]))
+                                    for m in sorted(members, key=lambda m: m["reader"])),
+        "malignancy_mean":    round(sum(m["malignancy"] for m in members) / len(members), 3),
     }
 
     rows = []

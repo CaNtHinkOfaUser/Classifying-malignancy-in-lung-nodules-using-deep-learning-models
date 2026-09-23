@@ -1,7 +1,7 @@
 # Jairus and Emmaus and Ishaan
 
 # This version creates a csv file containing the bounding boxes instead of roi annotations
-# It also blends the malignancy ratings together for YOLO model A, where the average rating is used
+# It also blends the malignancy ratings together for YOLO model A, where the mean rating is used
 
 import xml.etree.ElementTree as ET
 import pandas as pd
@@ -19,15 +19,10 @@ VALID_MALIGNANCY = {1, 2, 3, 4, 5}   # 0 is not a score on the LIDC scale
 OUTPUT_CSV = Path(__file__).parent.parent / "data" / "labels_bb_a.csv"
 
 def get_xml_files(xml_folder_path):
-    xml_files = []
-    for folder in xml_folder_path.iterdir():
-        if folder.name.startswith(".") or not folder.is_dir():
-            continue
-        for f in folder.iterdir():
-            if f.name.startswith(".") or f.suffix != ".xml":
-                continue
-            xml_files.append(f)
-    return xml_files
+    return [
+        path for path in Path(xml_folder_path).glob("*/*.xml")
+        if not path.name.startswith(".")
+    ]
 
 
 def load_meta_data(meta_data_path):

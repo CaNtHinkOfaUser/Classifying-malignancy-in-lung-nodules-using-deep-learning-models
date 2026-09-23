@@ -6,20 +6,10 @@ import pandas as pd
 from pathlib import Path
 
 def get_xml_files(xml_folder_path):
-    xml_files = []
-    for folder in Path.iterdir(xml_folder_path):
-        folder_path = xml_folder_path / folder
-
-        if str(folder).startswith(".") or not Path.is_dir(folder_path):
-            continue
-
-        for f in Path.iterdir(folder_path):
-            if str(f).startswith(".") or not str(f).endswith(".xml"):
-                continue
-
-            path = folder_path / f
-            xml_files.append(path)
-    return xml_files
+    return [
+        path for path in Path(xml_folder_path).glob("*/*.xml")
+        if not path.name.startswith(".")
+    ]
 
 def get_meta_data(data_header: str, meta_data_path: str, instance_uid: str):
     df = pd.read_csv(meta_data_path)
@@ -99,21 +89,27 @@ def parse_and_add_xml(xml_path, meta_data_path, all_rois_all_series, seen):
 
 
 if __name__ == "__main__":
-    ROOT = Path(__file__).parent / "tcia-lidc-xml"
-    meta_data_path = ROOT.parent / "metadata.csv"
+    xml_folder_path = Path("/Volumes/Expansion/LIDC-XML/tcia-lidc-xml")
+    project_folder = Path(__file__).parent.parent
+    meta_data_path = project_folder / "data" / "metadata.csv"
 
-    xml_files = get_xml_files(ROOT)
+    xml_files = get_xml_files(xml_folder_path)
 
     all_rois_all_series = []
     seen = set()
 
     for i, xml_path in enumerate(xml_files):
-        parse_and_add_xml(xml_path, meta_data_path, all_rois_all_series, seen)
+        try:
+            parse_and_add_xml(xml_path, meta_data_path, all_rois_all_series, seen)
+        except ET.ParseError as e:
+            print(f"ERROR in: {xml_path}")
+            print(e)
+            break
         if i % 50 == 0:
             print(i)
 
     all_rois_all_series.sort(key=lambda d: (d["patient_id"], d["image_sop_id"]))
     df = pd.DataFrame(all_rois_all_series)
-    df.to_csv("labels_roi.csv", index=False)
+    df.to_csv(project_folder / "data" / "labels_roi.csv", index=False)
 
     print("Finished creating csv file")

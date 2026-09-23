@@ -105,9 +105,6 @@ def parse_xml(xml_path, meta):
     return nodules
 
 
-# ============================================================
-# Merging nodules that are close together
-# ============================================================
 def is_close(a, b):
     return (abs(a["cx"] - b["cx"]) <= XY_TOLERANCE_PX
             and abs(a["cy"] - b["cy"]) <= XY_TOLERANCE_PX
@@ -115,7 +112,6 @@ def is_close(a, b):
 
 
 def scaled_distance(a, b):
-    # Each axis divided by its tolerance so pixels and mm are comparable
     return (((a["cx"] - b["cx"]) / XY_TOLERANCE_PX) ** 2
             + ((a["cy"] - b["cy"]) / XY_TOLERANCE_PX) ** 2
             + ((a["cz"] - b["cz"]) / Z_TOLERANCE_MM) ** 2)
@@ -199,18 +195,14 @@ def cluster_to_rows(cluster, merged_id):
                 ))
     return rows
 
-
-# ============================================================
-# Main
-# ============================================================
 if __name__ == "__main__":
-    ROOT = Path(__file__).parent / "tcia-lidc-xml"
-    meta_data_path = ROOT.parent / "metadata.csv"
+    xml_folder_path = Path("/Volumes/Expansion/LIDC-XML/tcia-lidc-xml")
+    project_folder = Path(__file__).parent.parent
+    meta_data_path = project_folder / "data" / "metadata.csv"
 
     meta = load_meta_data(meta_data_path)
-    xml_files = get_xml_files(ROOT)
+    xml_files = get_xml_files(xml_folder_path)
 
-    # Collect every radiologist's nodules, grouped by series
     nodules_by_series = {}
     for i, xml_path in enumerate(xml_files):
         for n in parse_xml(xml_path, meta):
@@ -218,7 +210,6 @@ if __name__ == "__main__":
         if i % 50 == 0:
             print(i)
 
-    # Merge within each series and build output rows
     all_rows = []
     for uid, nodules in nodules_by_series.items():
         clusters = cluster_nodules(nodules)

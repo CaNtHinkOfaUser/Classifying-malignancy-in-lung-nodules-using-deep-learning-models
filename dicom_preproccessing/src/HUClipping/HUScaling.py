@@ -47,7 +47,7 @@ for index, row in df.iterrows():
                 
                 Image.fromarray(img).save(output_folder / f"{file.stem}.png")
     
-    if index % 10:
+    if index % 10 == 0:
         print(index)
 
 

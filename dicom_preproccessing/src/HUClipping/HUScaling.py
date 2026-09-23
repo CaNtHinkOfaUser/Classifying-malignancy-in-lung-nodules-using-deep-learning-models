@@ -22,7 +22,7 @@ def apply_window(img: np.ndarray, window_level=-600, window_width=1500):
     windowed_img = (windowed_img * 255.0).astype('uint8')
     return windowed_img
 
-project_folder = Path(__file__).parent.parent.parent
+project_folder = Path(__file__).parent.parent.parent.parent
 dataset_folder = Path("/Volumes/Expansion/lidc_idri")
 new_dataset_folder = Path("/Volumes/Expansion/LIDC-IDRI")
 metadata = project_folder / "data" / "metadata.csv"

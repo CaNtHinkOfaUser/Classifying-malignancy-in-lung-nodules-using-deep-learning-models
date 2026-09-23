@@ -6,7 +6,7 @@ import pandas as pd
 
 print("Start")
 
-project_folder = Path(__file__).parent.parent.parent
+project_folder = Path(__file__).parent.parent.parent.parent
 dataset_folder = Path("/Volumes/Expansion/lidc_idri")
 metadata = project_folder / "data" / "metadata.csv"
 df = pd.read_csv(metadata)

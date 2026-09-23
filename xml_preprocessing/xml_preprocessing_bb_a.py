@@ -1,4 +1,4 @@
-# Jairus and Emmaus
+# Jairus and Emmaus and Ishaan
 
 # This version creates a csv file containing the bounding boxes instead of roi annotations
 # It also blends the malignancy ratings together for YOLO model A, where the average rating is used
@@ -6,13 +6,17 @@
 import xml.etree.ElementTree as ET
 import pandas as pd
 from pathlib import Path
+from collections import Counter
 
 XY_TOLERANCE_PX = 10.0   
 Z_TOLERANCE_MM = 5.0
 ALLOW_SAME_READER_MERGE = False
 MERGE_SLICES = True
 
-OUTPUT_CSV = "labels_bb_a.csv"
+VALID_MALIGNANCY = {1, 2, 3, 4, 5}   # 0 is not a score on the LIDC scale
+
+# written next to metadata.csv regardless of where the script is launched from
+OUTPUT_CSV = Path(__file__).parent.parent / "data" / "labels_bb_a.csv"
 
 def get_xml_files(xml_folder_path):
     xml_files = []
@@ -39,23 +43,35 @@ def parse_xml(xml_path, meta):
     if uid_tag is None:
         uid_tag = root.find(".//lidc:CTSeriesInstanceUid", ns)
     if uid_tag is None:
-        return []
+        return None
     uid = uid_tag.text.strip()
 
     info = meta.get(uid)
     if info is None or info["Modality"] != "CT":
-        return []
+        return None
     patient_id = str(info["Patient ID"])
 
     nodules = []
+    dropped_ratings = 0
     sessions = root.findall(".//lidc:readingSession", ns)
     for reader_idx, session in enumerate(sessions):
+        # Reader identity is only meaningful WITHIN a single XML file. Two files
+        # covering the same series would each produce a "_r0", the same-reader
+        # guard in cluster_nodules() would not fire, and one nodule would end up
+        # with 8, 16 or 24 "readers". pick_one_xml_per_series() prevents that.
         reader = f"{xml_path.stem}_r{reader_idx}"
 
         for nodule in session.findall("lidc:unblindedReadNodule", ns):
             nodule_id_tag = nodule.find("lidc:noduleID", ns)
             malignancy_tag = nodule.find(".//lidc:malignancy", ns)
             if nodule_id_tag is None or malignancy_tag is None:
+                continue
+
+            # Only nodules with a <characteristics> block carry a malignancy
+            # score. A value outside 1-5 is a data error, not a rating.
+            malignancy = float(malignancy_tag.text.strip())
+            if int(malignancy) not in VALID_MALIGNANCY:
+                dropped_ratings += 1
                 continue
 
             slices = []
@@ -96,13 +112,46 @@ def parse_xml(xml_path, meta):
                 "series_instance_uid": uid,
                 "reader": reader,
                 "nodule_id": nodule_id_tag.text.strip(),
-                "malignancy": float(malignancy_tag.text.strip()),
+                "malignancy": malignancy,
                 "slices": slices,
                 "cx": sum((s["x_min"] + s["x_max"]) / 2 for s in slices) / n,
                 "cy": sum((s["y_min"] + s["y_max"]) / 2 for s in slices) / n,
                 "cz": sum(s["z"] for s in slices) / n,
             })
-    return nodules
+
+    return {
+        "uid": uid,
+        "path": xml_path,
+        "n_sessions": len(sessions),
+        "nodules": nodules,
+        "dropped_ratings": dropped_ratings,
+    }
+
+
+def pick_one_xml_per_series(parsed):
+    """Keep exactly one XML file per series.
+
+    LIDC ships a handful of duplicate and "resubmitted correction" XMLs. Using
+    both files for a series counts every radiologist twice, which is what made
+    LIDC-IDRI-0777, -1010, -1011 and -1012 report up to 24 readers on a nodule.
+
+    The file kept is the one with the most reading sessions (the most complete
+    read), with ties broken on the path so reruns are deterministic -- which
+    also prefers the later, corrected submission (e.g. 161 over 158).
+    """
+    by_uid = {}
+    for p in parsed:
+        by_uid.setdefault(p["uid"], []).append(p)
+
+    kept, duplicates = [], []
+    for uid, group in by_uid.items():
+        if len(group) > 1:
+            group = sorted(group,
+                           key=lambda p: (p["n_sessions"], str(p["path"])),
+                           reverse=True)
+            duplicates.append((uid, [p["path"].name for p in group]))
+        kept.append(group[0])
+    return kept, duplicates
 
 
 def is_close(a, b):
@@ -178,6 +227,11 @@ def cluster_to_rows(cluster, merged_id):
                 by_slice.setdefault((s["image_sop_id"], s["z"]), []).append(s)
         for (sop, z), boxes in by_slice.items():
             k = len(boxes)
+            # Readers disagree about where a nodule starts and stops, so the end
+            # slices are often drawn by fewer readers than the middle ones. The
+            # box here is the mean over whoever drew on THIS slice;
+            # readers_on_slice records how many that was, so a suspiciously
+            # small box at the edge of a nodule can be explained later.
             rows.append(make_row(
                 base, sop, z,
                 sum(b["x_min"] for b in boxes) / k,
@@ -204,13 +258,29 @@ if __name__ == "__main__":
 
     meta = load_meta_data(meta_data_path)
     xml_files = get_xml_files(xml_folder_path)
+    print(f"{len(xml_files)} XML files found")
+
+    parsed = []
+    for i, xml_path in enumerate(xml_files):
+        result = parse_xml(xml_path, meta)
+        if result is not None:
+            parsed.append(result)
+        if i % 50 == 0:
+            print(f"  parsed {i}/{len(xml_files)}")
+    print(f"{len(parsed)} CT reads (chest X-ray reads and unknown series skipped)")
+
+    kept, duplicates = pick_one_xml_per_series(parsed)
+    print(f"{len(kept)} series after dropping {len(parsed) - len(kept)} duplicate XML file(s)")
+    for uid, names in duplicates:
+        print(f"  duplicate series ...{uid[-12:]}: {names} -> kept {names[0]}")
+
+    dropped_ratings = sum(p["dropped_ratings"] for p in kept)
+    if dropped_ratings:
+        print(f"dropped {dropped_ratings} reader-nodule(s) with a malignancy outside 1-5")
 
     nodules_by_series = {}
-    for i, xml_path in enumerate(xml_files):
-        for n in parse_xml(xml_path, meta):
-            nodules_by_series.setdefault(n["series_instance_uid"], []).append(n)
-        if i % 50 == 0:
-            print(i)
+    for p in kept:
+        nodules_by_series.setdefault(p["uid"], []).extend(p["nodules"])
 
     all_rows = []
     for uid, nodules in nodules_by_series.items():
@@ -222,4 +292,19 @@ if __name__ == "__main__":
     df = df.sort_values(["patient_id", "series_instance_uid", "merged_nodule_id", "z-slice"])
     df.to_csv(OUTPUT_CSV, index=False)
 
-    print(f"Finished: {len(nodules_by_series)} series, {len(df)} rows -> {OUTPUT_CSV}")
+    # --- self-audit: all of these must pass before you generate labels ---
+    nod = df.drop_duplicates(["patient_id", "series_instance_uid", "merged_nodule_id"])
+    print(f"\nFinished: {len(nodules_by_series)} series, {len(nod)} nodules, "
+          f"{len(df)} rows -> {OUTPUT_CSV}")
+    print("readers per nodule:", dict(sorted(Counter(nod["num_readers"]).items())))
+
+    impossible = nod[nod["num_readers"] > 4]
+    print(f"nodules with >4 readers (MUST be 0): {len(impossible)}")
+
+    bad = nod[nod["ratings"].astype(str).str.split(";").apply(
+        lambda r: any(x not in "12345" for x in r))]
+    print(f"nodules with an invalid rating (MUST be 0): {len(bad)}")
+
+    print(f"usable for the soft-label comparison: "
+          f"{int((nod['num_readers'] >= 2).sum())} nodules with >=2 readers, "
+          f"{int((nod['num_readers'] >= 3).sum())} with >=3")

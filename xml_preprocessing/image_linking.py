@@ -1,3 +1,6 @@
+# Emmaus
+# This code links an image path to its Image SOP UID
+
 import pydicom
 import pandas as pd
 from pathlib import Path

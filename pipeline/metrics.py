@@ -1,7 +1,6 @@
 # Ishaan
 
-"""Every number in the results tables comes from these functions.
-
+"""Calculate all metrics
 Baselines, the hard CNN and the soft CNN are all scored by the same code, so
 a difference between them can't come from two slightly different formulas.
 
@@ -19,12 +18,12 @@ EPS = 1e-7
 
 
 def suspicious(hard):
-    """Binary ground truth: median rating 4-5 = suspicious, 1-3 = not."""
+    #Binary ground truth: median rating 4-5 = suspicious, 1-3 = not.
     return (np.asarray(hard) >= 4).astype(int)
 
 
 def p_suspicious(probs): 
-    """Binary score from the 5-class model: P(4) + P(5). Metric for soft label model on how likely the nodule is greater than or equal to malignancy rating 4"""
+    #Binary score from the 5-class model: P(4) + P(5). Metric for soft label model on how likely the nodule is greater than or equal to malignancy rating 4
     return probs[:, 3] + probs[:, 4]
 
 

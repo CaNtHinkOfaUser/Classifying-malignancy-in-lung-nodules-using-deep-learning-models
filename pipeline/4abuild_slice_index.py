@@ -1,4 +1,4 @@
-# Written by Claude for Ishaan
+# Ishaan
 
 """Step 4a. Read the header of every CT slice once and write down where it is.
 

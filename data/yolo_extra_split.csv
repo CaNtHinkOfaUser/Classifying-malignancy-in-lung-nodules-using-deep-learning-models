@@ -1,0 +1,215 @@
+patient_id,split,reason
+LIDC-IDRI-0009,train,only 1-reader nodules
+LIDC-IDRI-0022,train,only 1-reader nodules
+LIDC-IDRI-0025,train,only 1-reader nodules
+LIDC-IDRI-0029,train,only 1-reader nodules
+LIDC-IDRI-0038,train,only 1-reader nodules
+LIDC-IDRI-0138,train,only 1-reader nodules
+LIDC-IDRI-0165,train,only 1-reader nodules
+LIDC-IDRI-0173,train,only 1-reader nodules
+LIDC-IDRI-0180,train,only 1-reader nodules
+LIDC-IDRI-0243,train,only 1-reader nodules
+LIDC-IDRI-0268,train,only 1-reader nodules
+LIDC-IDRI-0275,train,only 1-reader nodules
+LIDC-IDRI-0280,train,only 1-reader nodules
+LIDC-IDRI-0290,train,only 1-reader nodules
+LIDC-IDRI-0302,train,only 1-reader nodules
+LIDC-IDRI-0320,train,only 1-reader nodules
+LIDC-IDRI-0328,train,only 1-reader nodules
+LIDC-IDRI-0357,train,only 1-reader nodules
+LIDC-IDRI-0367,train,only 1-reader nodules
+LIDC-IDRI-0370,train,only 1-reader nodules
+LIDC-IDRI-0396,train,only 1-reader nodules
+LIDC-IDRI-0431,train,only 1-reader nodules
+LIDC-IDRI-0432,train,only 1-reader nodules
+LIDC-IDRI-0459,train,only 1-reader nodules
+LIDC-IDRI-0471,train,only 1-reader nodules
+LIDC-IDRI-0494,train,only 1-reader nodules
+LIDC-IDRI-0495,train,only 1-reader nodules
+LIDC-IDRI-0502,train,only 1-reader nodules
+LIDC-IDRI-0517,train,only 1-reader nodules
+LIDC-IDRI-0520,train,only 1-reader nodules
+LIDC-IDRI-0545,train,only 1-reader nodules
+LIDC-IDRI-0551,train,only 1-reader nodules
+LIDC-IDRI-0560,train,only 1-reader nodules
+LIDC-IDRI-0563,train,only 1-reader nodules
+LIDC-IDRI-0570,train,only 1-reader nodules
+LIDC-IDRI-0575,train,only 1-reader nodules
+LIDC-IDRI-0581,train,only 1-reader nodules
+LIDC-IDRI-0584,train,only 1-reader nodules
+LIDC-IDRI-0588,train,only 1-reader nodules
+LIDC-IDRI-0593,train,only 1-reader nodules
+LIDC-IDRI-0599,train,only 1-reader nodules
+LIDC-IDRI-0611,train,only 1-reader nodules
+LIDC-IDRI-0621,train,only 1-reader nodules
+LIDC-IDRI-0629,train,only 1-reader nodules
+LIDC-IDRI-0630,train,only 1-reader nodules
+LIDC-IDRI-0664,train,only 1-reader nodules
+LIDC-IDRI-0670,train,only 1-reader nodules
+LIDC-IDRI-0675,train,only 1-reader nodules
+LIDC-IDRI-0677,train,only 1-reader nodules
+LIDC-IDRI-0680,train,only 1-reader nodules
+LIDC-IDRI-0693,train,only 1-reader nodules
+LIDC-IDRI-0747,train,only 1-reader nodules
+LIDC-IDRI-0750,train,only 1-reader nodules
+LIDC-IDRI-0758,train,only 1-reader nodules
+LIDC-IDRI-0767,train,only 1-reader nodules
+LIDC-IDRI-0769,train,only 1-reader nodules
+LIDC-IDRI-0778,train,only 1-reader nodules
+LIDC-IDRI-0780,train,only 1-reader nodules
+LIDC-IDRI-0781,train,only 1-reader nodules
+LIDC-IDRI-0802,train,only 1-reader nodules
+LIDC-IDRI-0817,train,only 1-reader nodules
+LIDC-IDRI-0823,train,only 1-reader nodules
+LIDC-IDRI-0824,train,only 1-reader nodules
+LIDC-IDRI-0831,train,only 1-reader nodules
+LIDC-IDRI-0833,train,only 1-reader nodules
+LIDC-IDRI-0840,train,only 1-reader nodules
+LIDC-IDRI-0847,train,only 1-reader nodules
+LIDC-IDRI-0856,train,only 1-reader nodules
+LIDC-IDRI-0873,train,only 1-reader nodules
+LIDC-IDRI-0883,train,only 1-reader nodules
+LIDC-IDRI-0943,train,only 1-reader nodules
+LIDC-IDRI-0945,train,only 1-reader nodules
+LIDC-IDRI-0950,train,only 1-reader nodules
+LIDC-IDRI-0958,train,only 1-reader nodules
+LIDC-IDRI-0971,train,only 1-reader nodules
+LIDC-IDRI-0977,train,only 1-reader nodules
+LIDC-IDRI-0989,train,only 1-reader nodules
+LIDC-IDRI-0996,train,only 1-reader nodules
+LIDC-IDRI-1009,train,only 1-reader nodules
+LIDC-IDRI-0711,val,no nodules
+LIDC-IDRI-0718,val,no nodules
+LIDC-IDRI-0364,val,no nodules
+LIDC-IDRI-0668,val,no nodules
+LIDC-IDRI-0804,val,no nodules
+LIDC-IDRI-0979,val,no nodules
+LIDC-IDRI-0100,val,no nodules
+LIDC-IDRI-0062,val,no nodules
+LIDC-IDRI-0931,val,no nodules
+LIDC-IDRI-0295,val,no nodules
+LIDC-IDRI-0327,val,no nodules
+LIDC-IDRI-0737,val,no nodules
+LIDC-IDRI-0322,val,no nodules
+LIDC-IDRI-0927,val,no nodules
+LIDC-IDRI-0028,val,no nodules
+LIDC-IDRI-0333,val,no nodules
+LIDC-IDRI-0589,val,no nodules
+LIDC-IDRI-0623,val,no nodules
+LIDC-IDRI-0391,val,no nodules
+LIDC-IDRI-0511,val,no nodules
+LIDC-IDRI-0667,test,no nodules
+LIDC-IDRI-0225,test,no nodules
+LIDC-IDRI-0745,test,no nodules
+LIDC-IDRI-0071,test,no nodules
+LIDC-IDRI-0934,test,no nodules
+LIDC-IDRI-0519,test,no nodules
+LIDC-IDRI-0885,test,no nodules
+LIDC-IDRI-0446,test,no nodules
+LIDC-IDRI-0960,test,no nodules
+LIDC-IDRI-0646,test,no nodules
+LIDC-IDRI-0627,test,no nodules
+LIDC-IDRI-0616,test,no nodules
+LIDC-IDRI-0224,test,no nodules
+LIDC-IDRI-0573,test,no nodules
+LIDC-IDRI-0901,test,no nodules
+LIDC-IDRI-0967,test,no nodules
+LIDC-IDRI-0683,test,no nodules
+LIDC-IDRI-0900,test,no nodules
+LIDC-IDRI-0279,test,no nodules
+LIDC-IDRI-0881,test,no nodules
+LIDC-IDRI-0808,train,no nodules
+LIDC-IDRI-0506,train,no nodules
+LIDC-IDRI-0401,train,no nodules
+LIDC-IDRI-0197,train,no nodules
+LIDC-IDRI-0716,train,no nodules
+LIDC-IDRI-0331,train,no nodules
+LIDC-IDRI-0774,train,no nodules
+LIDC-IDRI-0853,train,no nodules
+LIDC-IDRI-0482,train,no nodules
+LIDC-IDRI-0306,train,no nodules
+LIDC-IDRI-0710,train,no nodules
+LIDC-IDRI-0603,train,no nodules
+LIDC-IDRI-0685,train,no nodules
+LIDC-IDRI-0536,train,no nodules
+LIDC-IDRI-0441,train,no nodules
+LIDC-IDRI-0622,train,no nodules
+LIDC-IDRI-0862,train,no nodules
+LIDC-IDRI-0903,train,no nodules
+LIDC-IDRI-0189,train,no nodules
+LIDC-IDRI-0760,train,no nodules
+LIDC-IDRI-0143,train,no nodules
+LIDC-IDRI-0330,train,no nodules
+LIDC-IDRI-0970,train,no nodules
+LIDC-IDRI-0746,train,no nodules
+LIDC-IDRI-0930,train,no nodules
+LIDC-IDRI-0964,train,no nodules
+LIDC-IDRI-0214,train,no nodules
+LIDC-IDRI-0918,train,no nodules
+LIDC-IDRI-0336,train,no nodules
+LIDC-IDRI-0561,train,no nodules
+LIDC-IDRI-0514,train,no nodules
+LIDC-IDRI-0731,train,no nodules
+LIDC-IDRI-0422,train,no nodules
+LIDC-IDRI-0261,train,no nodules
+LIDC-IDRI-0410,train,no nodules
+LIDC-IDRI-0952,train,no nodules
+LIDC-IDRI-0512,train,no nodules
+LIDC-IDRI-0653,train,no nodules
+LIDC-IDRI-0755,train,no nodules
+LIDC-IDRI-0417,train,no nodules
+LIDC-IDRI-0679,train,no nodules
+LIDC-IDRI-0612,train,no nodules
+LIDC-IDRI-0876,train,no nodules
+LIDC-IDRI-0032,train,no nodules
+LIDC-IDRI-0691,train,no nodules
+LIDC-IDRI-0738,train,no nodules
+LIDC-IDRI-0877,train,no nodules
+LIDC-IDRI-0948,train,no nodules
+LIDC-IDRI-0988,train,no nodules
+LIDC-IDRI-0690,train,no nodules
+LIDC-IDRI-0689,train,no nodules
+LIDC-IDRI-0425,train,no nodules
+LIDC-IDRI-0891,train,no nodules
+LIDC-IDRI-0361,train,no nodules
+LIDC-IDRI-0544,train,no nodules
+LIDC-IDRI-0528,train,no nodules
+LIDC-IDRI-0995,train,no nodules
+LIDC-IDRI-0316,train,no nodules
+LIDC-IDRI-0992,train,no nodules
+LIDC-IDRI-0878,train,no nodules
+LIDC-IDRI-0239,train,no nodules
+LIDC-IDRI-0465,train,no nodules
+LIDC-IDRI-0540,train,no nodules
+LIDC-IDRI-0205,train,no nodules
+LIDC-IDRI-0548,train,no nodules
+LIDC-IDRI-0349,train,no nodules
+LIDC-IDRI-0889,train,no nodules
+LIDC-IDRI-0253,train,no nodules
+LIDC-IDRI-0428,train,no nodules
+LIDC-IDRI-0784,train,no nodules
+LIDC-IDRI-0937,train,no nodules
+LIDC-IDRI-0600,train,no nodules
+LIDC-IDRI-0382,train,no nodules
+LIDC-IDRI-0342,train,no nodules
+LIDC-IDRI-0531,train,no nodules
+LIDC-IDRI-0632,train,no nodules
+LIDC-IDRI-0383,train,no nodules
+LIDC-IDRI-0665,train,no nodules
+LIDC-IDRI-0513,train,no nodules
+LIDC-IDRI-0472,train,no nodules
+LIDC-IDRI-0174,train,no nodules
+LIDC-IDRI-0839,train,no nodules
+LIDC-IDRI-0975,train,no nodules
+LIDC-IDRI-0218,train,no nodules
+LIDC-IDRI-0954,train,no nodules
+LIDC-IDRI-0418,train,no nodules
+LIDC-IDRI-0887,train,no nodules
+LIDC-IDRI-0307,train,no nodules
+LIDC-IDRI-0293,train,no nodules
+LIDC-IDRI-0564,train,no nodules
+LIDC-IDRI-0455,train,no nodules
+LIDC-IDRI-0897,train,no nodules
+LIDC-IDRI-0226,train,no nodules
+LIDC-IDRI-0389,train,no nodules
+LIDC-IDRI-0764,train,no nodules

@@ -1,4 +1,4 @@
-# Written by Claude for Ishaan -- shared by every script in pipeline/
+# Ishaan
 
 """Where the data lives, and the ONE way this project reads CT.
 
@@ -14,8 +14,12 @@ Coordinate conventions (checked against the XML and DICOM headers):
 """
 
 # Emmaus notes
-# Idk why claude is so dramatic but anyways this code is just a module
-# 
+# Idk why the comments are so dramatic but anyways this code is just a module
+# It contains the paths to all the important stuff
+# It also contains a lot of CT functions to make navigating the dataset
+# easier
+# It also serves as configuration for certain stuff like output paths
+# You can also configure other variables e.g. CUBE_MM
 
 from pathlib import Path
 

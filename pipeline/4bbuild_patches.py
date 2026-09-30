@@ -1,4 +1,4 @@
-# Written by Claude for Ishaan
+# Ishaan
 
 """Step 4b. Cut one 48 mm cube around every nodule and save it.
 
@@ -17,9 +17,11 @@ that is lopsided in z still sits in the middle of its cube.
 """
 
 # Emmaus notes
-# patches.npy is an old file idk where it came from
 # Naming convention of the numpy files is
 # Patient ID_Last 6 digits of seriesinstanceuid_merged nodule id with a zero at the start if it is single digit
+# This code takes 30 minutes to run
+# Note that the patches are not sorted into their respective train test val folders
+# Refer to patient_split.csv for the splits as the source of truth
 
 
 import time

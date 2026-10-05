@@ -1,0 +1,16 @@
+{
+  "labels": "hard",
+  "fold": 1,
+  "epochs": 100,
+  "patience": 15,
+  "batch": 32,
+  "lr": 0.001,
+  "weight_decay": 0.0001,
+  "overfit": 0,
+  "out": "/Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls",
+  "seed": 1,
+  "device": "mps",
+  "train_nodules": 1131,
+  "val_nodules": 377,
+  "parameters": 291861
+}

@@ -38,8 +38,12 @@ YOLO_DIR = PROCESSED / "yolo_lidc"
 
 METADATA = DATA / "metadata.csv"
 BOXES = DATA / "labels_bb_a.csv"            # one row per nodule per slice, all readers
-NODULES = DATA / "nodules_labels.csv"       # one row per nodule, >=2 readers, labels + split
-SPLIT = DATA / "patient_split.csv"
+NODULES = DATA / "nodules_labels.csv"       # one row per nodule, >=2 readers, labels, split, fold
+SPLIT = DATA / "patient_split.csv"          # patient -> train/val/test: YOLO's split
+FOLDS = DATA / "patient_folds.csv"          # patient -> fold 0-4 (balanced, 377 nodules each)
+N_FOLDS = 5
+TEST_FOLD = 0              # the locked test set: 20% of patients, opened once at the very end
+CV_FOLDS = (1, 2, 3, 4)    # 4-fold cross-validation runs on the other 80%
 SLICE_INDEX = DATA / "slice_index.csv"      # one row per DICOM file: series, idx, sop, z
 SERIES_INDEX = DATA / "series_index.csv"    # one row per series: spacing, thickness, checks
 
@@ -48,6 +52,22 @@ HU_MIN, HU_MAX = -1024, 3071    # the 12-bit CT range; below it is scanner paddi
 CUBE_MM = 48                    # cube side, in mm
 CUBE_SPACING = 1.0              # mm per voxel in the cube -> 48 x 48 x 48
 LUNG_WINDOW = (-1350, 150)      # level -600, width 1500: for YOLO images only
+
+
+def fold_role(fold, val_fold):
+    """What a patient in `fold` is used for in the cross-validation run that validates on `val_fold`.
+
+    Fold 0 is the locked test set in every run: never trained on, never used
+    to choose anything, scored once at the very end. The run for val_fold k
+    (1-4) picks its best epoch and threshold on fold k and trains on the other
+    three of folds 1-4.
+    """
+    assert val_fold in CV_FOLDS, f"val_fold must be one of {CV_FOLDS}"
+    if fold == TEST_FOLD:
+        return "test"
+    if fold == val_fold:
+        return "val"
+    return "train"
 
 
 def series_dir(patient_id, series_uid):

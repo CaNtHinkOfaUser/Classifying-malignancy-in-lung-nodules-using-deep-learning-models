@@ -60,8 +60,12 @@ malignancy classifier than training on a single median rating (hard labels, mode
 | A vs B comparison | `bootstrap_diff`: 95% confidence interval for B - A, resampling whole patients |
 | Test set | Scored once, after every decision above is fixed |
 
-### Still to decide before the test set
-- [ ] Cut-off for sensitivity / specificity: each seed's cut-off chosen on its own validation predictions, applied unchanged to its own test predictions?
-- [ ] Combining the three seeds on test: score each seed and average, or pass all seeds to `bootstrap_diff`?
-- [ ] Final runs: the six retrained 300-epoch runs only
-- [ ] Figures made on test exactly as on validation: confidence by spread (with readers' agreement line), confusion matrices
+### Test set
+| Decision | Choice |
+|---|---|
+| Final runs | The six retrained 300-epoch runs only (`hard_seed1` to `soft_seed3`). Earlier runs are not reported |
+| Cut-off for sensitivity / specificity | Each run's cut-off is chosen on its own validation predictions (Youden's J) and applied unchanged to its own test predictions. Never chosen on the test set |
+| Combining the three seeds | Every metric reported per run and as mean ± SD over seeds 1-3 (variation between training runs) |
+| B - A confidence intervals | `bootstrap_diff` with all three seeds of each model, 2,000 resamples of whole patients (variation in which patients are tested). If an interval contains 0, no difference is claimed. Sensitivity and specificity have no interval, since each seed has its own cut-off |
+| Figures | Made on test exactly as on validation: confidence by reader disagreement (with the readers' own agreement line) and a confusion matrix per run |
+| Scripts | `Model/no_folds/predict_test_no_fold.py` (predictions only), then `Model/no_folds/score_test_no_fold.py` (all scoring), plus `pipeline/6baselines.py --test` for the baselines on test |

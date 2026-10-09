@@ -1,8 +1,21 @@
-# Ishaan
+#Ishaan
 
 """Calculate all metrics
 Baselines, the hard CNN and the soft CNN are all scored by the same code, so
 a difference between them can't come from two slightly different formulas.
+
+Four numbers per model, nothing else:
+    balanced_accuracy   is the 1-5 rating right? (every rating counts equally)
+    auc                 does P(4) + P(5) rank suspicious nodules above the rest?
+    ce_vs_readers       do the probabilities match what the radiologists said?
+    ece                 when it says 70%, is it right 70% of the time?
+
+Extras, outside scores() so the four headline numbers stay as they are:
+    quadratic_kappa     agreement with the median rating, the measure radiologists'
+                        agreement with each other is usually reported in
+    youden_threshold    picks the suspicious cut-off on VAL...
+    binary              ...which is then applied unchanged to TEST: sensitivity,
+                        specificity and the rest
 
 Inputs, always per NODULE:
     probs  (N, 5) float   predicted probability of rating 1..5 (rows sum to 1)
@@ -11,24 +24,23 @@ Inputs, always per NODULE:
 """
 
 import numpy as np
-from sklearn.metrics import (accuracy_score, balanced_accuracy_score, cohen_kappa_score,
-                             f1_score, roc_auc_score)
+from sklearn.metrics import balanced_accuracy_score, cohen_kappa_score, roc_auc_score
 
 EPS = 1e-7
 
 
-def suspicious(hard):
-    #Binary ground truth: median rating 4-5 = suspicious, 1-3 = not.
-    return (np.asarray(hard) >= 4).astype(int)
+def suspicious(hard_labels):
+    # Binary ground truth: median rating 4-5 = suspicious, 1-3 = not.
+    return (np.asarray(hard_labels) >= 4).astype(int)
 
 
-def p_suspicious(probs): 
-    #Binary score from the 5-class model: P(4) + P(5). Metric for soft label model on how likely the nodule is greater than or equal to malignancy rating 4
-    return probs[:, 3] + probs[:, 4]
+def p_suspicious(predicted_probabilities):
+    # Binary score from either model: P(4) + P(5), the chance the median rating is 4 or 5.
+    return predicted_probabilities[:, 3] + predicted_probabilities[:, 4]
 
 
 def ece(probs, hard, n_bins=10):
-    """Expected calibration error, top-label version.
+    """Expected calibration error (ece), top-label version.
 
     Bin nodules by the model's confidence (its top probability). In each bin
     compare average confidence with how often the top class was right. ECE is
@@ -45,57 +57,63 @@ def ece(probs, hard, n_bins=10):
     return total
 
 
-def five_class(probs, hard, soft):
-    """Table 1, the 5-class rows."""
-    probs = np.clip(probs, EPS, 1)
+def scores(probs, hard, soft):
+    """The four numbers reported for every model and baseline."""
     pred = probs.argmax(axis=1) + 1
+    y = suspicious(hard)
     return {
-        "accuracy": accuracy_score(hard, pred),
         "balanced_accuracy": balanced_accuracy_score(hard, pred),
-        "macro_f1": f1_score(hard, pred, average="macro", labels=[1, 2, 3, 4, 5], zero_division=0),
-        # ordinal agreement: calling a 5 a 4 is punished far less than calling it a 1
-        "quadratic_kappa": cohen_kappa_score(hard, pred, weights="quadratic", labels=[1, 2, 3, 4, 5]),
-        "mae_rating": np.abs(pred - hard).mean(),
-        # how well the predicted distribution matches the median...
-        "nll_vs_median": -np.log(probs[np.arange(len(hard)), hard - 1]).mean(),
-        # ...and the whole panel of readers: THE soft-label metric
-        "ce_vs_readers": -(soft * np.log(probs)).sum(axis=1).mean(),
+        "auc": roc_auc_score(y, p_suspicious(probs)) if 0 < y.sum() < len(y) else float("nan"),
+        # the soft-label metric: lower = closer to the whole panel of readers
+        "ce_vs_readers": -(soft * np.log(np.clip(probs, EPS, 1))).sum(axis=1).mean(),
         "ece": ece(probs, hard),
     }
 
 
+
+def quadratic_kappa(probs, hard):
+    """Agreement between the predicted rating and the median rating, beyond chance.
+
+    1 = perfect, 0 = no better than chance. Quadratic weights: calling a 5 a 4
+    costs far less than calling it a 1.
+    """
+    pred = probs.argmax(axis=1) + 1
+    return cohen_kappa_score(hard, pred, weights="quadratic", labels=[1, 2, 3, 4, 5])
+
+
 def youden_threshold(score, y):
-    """Threshold maximising sensitivity + specificity - 1. Pick it on VAL, apply it to TEST."""
-    cands = np.unique(score)
-    best_t, best_j = 0.5, -1
-    for t in cands:
+    """The cut-off that maximises sensitivity + specificity - 1. Pick it on VAL, apply it to TEST.
+
+    score: p_suspicious(probs);  y: suspicious(hard).
+    """
+    best_t, best_j = 0.5, -1.0
+    for t in np.unique(score):
         pred = score >= t
-        sens = pred[y == 1].mean()
-        spec = (~pred[y == 0]).mean()
-        if sens + spec - 1 > best_j:
-            best_t, best_j = t, sens + spec - 1
+        j = pred[y == 1].mean() + (~pred[y == 0]).mean() - 1
+        if j > best_j:
+            best_t, best_j = t, j
     return float(best_t)
 
 
 def binary(score, y, threshold):
-    """Table 1, the suspicious-vs-not rows. AUC needs no threshold; the rest do."""
-    pred = (score >= threshold).astype(int)
-    tp = int(((pred == 1) & (y == 1)).sum()); fn = int(((pred == 0) & (y == 1)).sum())
-    tn = int(((pred == 0) & (y == 0)).sum()); fp = int(((pred == 1) & (y == 0)).sum())
-    sens = tp / max(tp + fn, 1)
-    ppv = tp / max(tp + fp, 1)
+    """Suspicious-vs-not at a fixed cut-off: what a clinician would ask.
+
+    score: p_suspicious(probs);  y: suspicious(hard);  threshold: from youden_threshold on VAL.
+    """
+    pred = (np.asarray(score) >= threshold).astype(int)
+    y = np.asarray(y)
+    tp = int(((pred == 1) & (y == 1)).sum())
+    fn = int(((pred == 0) & (y == 1)).sum())
+    tn = int(((pred == 0) & (y == 0)).sum())
+    fp = int(((pred == 1) & (y == 0)).sum())
     return {
-        "auc": roc_auc_score(y, score),
         "threshold": threshold,
-        "sensitivity": sens,                    # = recall
-        "specificity": tn / max(tn + fp, 1),
-        "precision": ppv,                       # = PPV
-        "npv": tn / max(tn + fn, 1),
-        "f1": 2 * ppv * sens / max(ppv + sens, EPS),
-        "binary_accuracy": (tp + tn) / len(y),
+        "sensitivity": tp / max(tp + fn, 1),     # share of suspicious nodules caught
+        "specificity": tn / max(tn + fp, 1),     # share of non-suspicious ones correctly cleared
+        "precision": tp / max(tp + fp, 1),       # of those flagged, share really suspicious
+        "npv": tn / max(tn + fn, 1),             # of those cleared, share really not suspicious
         "tp": tp, "fp": fp, "tn": tn, "fn": fn,
     }
-
 
 def confidence_by_spread(probs, spread):
     """Figure 1: mean top probability for each level of reader disagreement."""
@@ -104,23 +122,31 @@ def confidence_by_spread(probs, spread):
             for s in np.unique(spread)}
 
 
+def bootstrap_diff(metric, a_runs, b_runs, hard, soft, n=2000, seed=0, groups=None):
+    """95% CI for metric(model A) - metric(model B) on the same nodules.
 
-def bootstrap_diff(metric, a_runs, b_runs, hard, soft, n=2000, seed=0):
-    """95% CI for metric(model A) - metric(model B) on the same test nodules.
-
-    a_runs, b_runs: (seeds, N, 5) -- the test predictions of every seed of each model.
+    a_runs, b_runs: (runs, N, 5) -- predictions of each model on the same N
+            nodules. With folds this is (1, 1885, 5): every nodule's prediction
+            from the run that tested it, pooled.
     metric: function(probs, hard, soft) -> float, e.g.
-            lambda p, h, s: five_class(p, h, s)["ce_vs_readers"]
-    Each resample draws N nodules with replacement, scores every seed of both
-    models on THOSE nodules, averages over seeds, and takes A - B. Paired, so
-    how hard the drawn nodules happen to be cancels out. If the interval
-    contains 0, you can't claim a difference.
+            lambda p, h, s: scores(p, h, s)["ce_vs_readers"]
+    groups: the patient_id of each nodule. Pass it with folds: one patient can
+            have up to 13 nodules, and those aren't independent, so each
+            resample draws whole patients with replacement, not single nodules.
+    Each resample scores both models on the SAME drawn nodules and takes A - B.
+    Paired, so how hard the drawn nodules happen to be cancels out. If the
+    interval contains 0, you can't claim a difference.
     """
     rng = np.random.default_rng(seed)
     N = len(hard)
+    if groups is None:
+        members = [np.array([i]) for i in range(N)]
+    else:
+        _, which = np.unique(np.asarray(groups), return_inverse=True)
+        members = [np.flatnonzero(which == g) for g in range(which.max() + 1)]
     diffs = []
     for _ in range(n):
-        i = rng.integers(0, N, N)
+        i = np.concatenate([members[g] for g in rng.integers(0, len(members), len(members))])
         a = np.mean([metric(p[i], hard[i], soft[i]) for p in a_runs])
         b = np.mean([metric(p[i], hard[i], soft[i]) for p in b_runs])
         diffs.append(a - b)

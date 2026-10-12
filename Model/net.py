@@ -1,4 +1,4 @@
-# Written by Claude for Ishaan
+# Ishaan
 
 """Step C. The 3D CNN that rates a nodule's malignancy from its 32 mm cube.
 

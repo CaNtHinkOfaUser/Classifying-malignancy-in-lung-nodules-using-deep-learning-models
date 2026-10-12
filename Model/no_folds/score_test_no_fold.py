@@ -104,14 +104,11 @@ def main():
             p_val = load_preds(run_dir / "val_preds.csv", val["nodule_key"])
             test_probs[labels_type, seed] = p_test
 
-            # the cut-off comes from VALIDATION and is applied unchanged to test
-            cut = M.youden_threshold(M.p_suspicious(p_val), M.suspicious(val["hard"].to_numpy()))
-            b = M.binary(M.p_suspicious(p_test), y, cut)
-            rows.append({"run": run, "model": model, "seed": seed}
-                        | M.scores(p_test, hard, soft)
-                        | {"quadratic_kappa": M.quadratic_kappa(p_test, hard),
-                           "threshold_from_val": cut,
-                           "sensitivity": b["sensitivity"], "specificity": b["specificity"]})
+            # the threshold comes from VALIDATION and is applied unchanged to test
+            threshold = M.youden_threshold(M.p_suspicious(p_val), M.suspicious(val["hard"].to_numpy()))
+            m = M.all_metrics(p_test, hard, soft, threshold=threshold)
+            m["threshold_from_val"] = m.pop("threshold")
+            rows.append({"run": run, "model": model, "seed": seed} | m)
 
             _confusion_png(hard, p_test.argmax(axis=1) + 1, f"{run}: confusion matrix (test set)",
                            args.out / f"confusion_{run}.png")

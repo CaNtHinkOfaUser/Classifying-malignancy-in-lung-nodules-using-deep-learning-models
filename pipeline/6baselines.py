@@ -45,7 +45,7 @@ rows["always_3"] = {"accuracy": (hard == 3).mean(), "balanced_accuracy": 0.2}
 # 2. predict the train label frequencies for every nodule
 prior = np.bincount(tr.hard, minlength=6)[1:] / len(tr)
 p = np.tile(prior, (len(ev), 1))
-rows["train_prior"] = M.scores(p, hard, soft) | {"quadratic_kappa": M.quadratic_kappa(p, hard)}
+rows["train_prior"] = M.all_metrics(p, hard, soft)
 
 # 3. diameter only
 mu, sd = np.log(tr.diameter_mm).mean(), np.log(tr.diameter_mm).std()
@@ -53,12 +53,10 @@ x_tr = ((np.log(tr.diameter_mm) - mu) / sd).to_numpy()[:, None]
 x_ev = ((np.log(ev.diameter_mm) - mu) / sd).to_numpy()[:, None]
 lr = LogisticRegression(C=1e6, max_iter=5000).fit(x_tr, tr.hard)   # C huge = no regularisation
 p = lr.predict_proba(x_ev)
-score = M.p_suspicious(p)
 val_df = df[df.split == "val"]
 x_val = ((np.log(val_df.diameter_mm) - mu) / sd).to_numpy()[:, None]
 thr = M.youden_threshold(M.p_suspicious(lr.predict_proba(x_val)), M.suspicious(val_df.hard.to_numpy()))
-rows["diameter_only"] = (M.scores(p, hard, soft) | {"quadratic_kappa": M.quadratic_kappa(p, hard)}
-                         | M.binary(score, y_bin, thr))
+rows["diameter_only"] = M.all_metrics(p, hard, soft, threshold=thr)    # threshold chosen on VAL
 
 # 4. one radiologist vs the median of the other three (4-reader nodules only)
 four = ev[ev.num_readers == 4]

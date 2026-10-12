@@ -1,4 +1,4 @@
-# Written by Claude for Ishaan
+# Ishaan
 
 """Figures and a results table for one classifier run, like YOLO's results.png.
 
@@ -187,17 +187,13 @@ def report_run(run_dir, show=False):
     hard = d["hard"].to_numpy().astype(int)
     soft = d[SOFT].to_numpy()
     pred = probs.argmax(axis=1) + 1
-    m = M.scores(probs, hard, soft)
-
-    # extras, kept out of M.scores() so its four headline numbers stay as they are
-    m["quadratic_kappa"] = M.quadratic_kappa(probs, hard)
-    y, score = M.suspicious(hard), M.p_suspicious(probs)
-    if 0 < y.sum() < len(y):                  # needs both suspicious and non-suspicious nodules
-        # the cut-off is chosen on THIS validation set, so these two are slightly optimistic.
-        # For the report: choose it on validation, then apply it unchanged to the test set.
-        m["threshold"] = M.youden_threshold(score, y)
-        b = M.binary(score, y, m["threshold"])
-        m["sensitivity"], m["specificity"] = b["sensitivity"], b["specificity"]
+    # the threshold is chosen on THIS validation set, so sensitivity and specificity here
+    # are slightly optimistic. For the report: choose it on validation, apply it to test.
+    true_suspicious = M.suspicious(hard)
+    threshold = None
+    if 0 < true_suspicious.sum() < len(true_suspicious):    # needs both groups present
+        threshold = M.youden_threshold(M.p_suspicious(probs), true_suspicious)
+    m = M.all_metrics(probs, hard, soft, threshold=threshold)
 
     entropy = float(-(soft * np.log(np.clip(soft, 1e-12, 1))).sum(axis=1).mean())
     floors = {"loss": entropy if cfg["labels"] == "soft" else None}
@@ -236,8 +232,8 @@ def report_run(run_dir, show=False):
             ("CE vs readers", "ce_vs_readers", f"{entropy:.3f}  lowest possible"),
             ("ECE", "ece", "0.000  perfectly calibrated"),
             ("quadratic kappa", "quadratic_kappa", "0.000  chance"),
-            ("sensitivity *", "sensitivity", "share of suspicious nodules caught"),
-            ("specificity *", "specificity", "share of the others correctly cleared")]
+            ("sensitivity *", "sensitivity", "of suspicious nodules, proportion labelled suspicious"),
+            ("specificity *", "specificity", "of non-suspicious, proportion labelled not suspicious")]
     print(f"\n{title}")
     print(f"  {'':24s}{'this run':>10s}{'size only':>11s}   reference")
     for label, key, ref in rows:

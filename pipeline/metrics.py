@@ -13,9 +13,13 @@ Four numbers per model, nothing else:
 Extras, outside scores() so the four headline numbers stay as they are:
     quadratic_kappa     agreement with the median rating, the measure radiologists'
                         agreement with each other is usually reported in
-    youden_threshold    picks the suspicious cut-off on VAL...
+    youden_threshold    picks the suspicious threshold on VAL...
     binary              ...which is then applied unchanged to TEST: sensitivity,
-                        specificity and the rest
+                        specificity, precision and NPV
+
+all_metrics() returns every reported metric in one dictionary: scores(), plus
+quadratic kappa, plus binary() at a threshold when one is given. Every script that
+reports results calls it, so each metric is calculated in exactly one place.
 
 Inputs, always per NODULE:
     probs  (N, 5) float   predicted probability of rating 1..5 (rows sum to 1)
@@ -81,39 +85,66 @@ def quadratic_kappa(probs, hard):
     return cohen_kappa_score(hard, pred, weights="quadratic", labels=[1, 2, 3, 4, 5])
 
 
-def youden_threshold(score, y):
-    """The cut-off that maximises sensitivity + specificity - 1. Pick it on VAL, apply it to TEST.
+def youden_threshold(p_suspicious_values, true_suspicious):
+    """The threshold that maximises sensitivity + specificity - 1. Pick it on VAL, apply it to TEST.
 
-    score: p_suspicious(probs);  y: suspicious(hard).
+    p_suspicious_values: the model's probability that each nodule is suspicious, from p_suspicious().
+    true_suspicious:     the true label of each nodule, 1 = suspicious, 0 = not, from suspicious().
     """
+    p_suspicious_values = np.asarray(p_suspicious_values)
+    true_suspicious = np.asarray(true_suspicious)
     best_t, best_j = 0.5, -1.0
-    for t in np.unique(score):
-        pred = score >= t
-        j = pred[y == 1].mean() + (~pred[y == 0]).mean() - 1
+    for t in np.unique(p_suspicious_values):
+        predicted_suspicious = p_suspicious_values >= t
+        j = (predicted_suspicious[true_suspicious == 1].mean() # sensitivity at threshold t
+             + (~predicted_suspicious[true_suspicious == 0]).mean() # specificity at threshold t
+             - 1)
         if j > best_j:
             best_t, best_j = t, j
     return float(best_t)
 
 
-def binary(score, y, threshold):
-    """Suspicious-vs-not at a fixed cut-off: what a clinician would ask.
+def binary(p_suspicious_values, true_suspicious, threshold):
+    """Suspicious-vs-not at a fixed threshold: what a clinician would ask.
 
-    score: p_suspicious(probs);  y: suspicious(hard);  threshold: from youden_threshold on VAL.
+    p_suspicious_values: the model's probability that each nodule is suspicious, from p_suspicious().
+    true_suspicious:     the true label of each nodule, 1 = suspicious, 0 = not, from suspicious().
+    threshold:           from youden_threshold() on the VALIDATION set.
     """
-    pred = (np.asarray(score) >= threshold).astype(int)
-    y = np.asarray(y)
-    tp = int(((pred == 1) & (y == 1)).sum())
-    fn = int(((pred == 0) & (y == 1)).sum())
-    tn = int(((pred == 0) & (y == 0)).sum())
-    fp = int(((pred == 1) & (y == 0)).sum())
+    predicted_suspicious = (np.asarray(p_suspicious_values) >= threshold).astype(int)
+    true_suspicious = np.asarray(true_suspicious)
+    tp = int(((predicted_suspicious == 1) & (true_suspicious == 1)).sum())
+    fn = int(((predicted_suspicious == 0) & (true_suspicious == 1)).sum())
+    tn = int(((predicted_suspicious == 0) & (true_suspicious == 0)).sum())
+    fp = int(((predicted_suspicious == 1) & (true_suspicious == 0)).sum())
     return {
         "threshold": threshold,
-        "sensitivity": tp / max(tp + fn, 1),     # share of suspicious nodules caught
-        "specificity": tn / max(tn + fp, 1),     # share of non-suspicious ones correctly cleared
-        "precision": tp / max(tp + fp, 1),       # of those flagged, share really suspicious
-        "npv": tn / max(tn + fn, 1),             # of those cleared, share really not suspicious
+        "sensitivity": tp / max(tp + fn, 1), # of the suspicious nodules, proportion labelled suspicious
+        "specificity": tn / max(tn + fp, 1), # of the non-suspicious nodules, proportion labelled not suspicious
+        "precision": tp / max(tp + fp, 1), # of the nodules labelled suspicious, proportion truly suspicious
+        "npv": tn / max(tn + fn, 1), # of the nodules labelled not suspicious, proportion truly not suspicious
         "tp": tp, "fp": fp, "tn": tn, "fn": fn,
     }
+
+
+def all_metrics(probs, hard, soft, threshold=None):
+    """Every metric reported for a model or baseline, in one dictionary.
+
+    Always: the four from scores() and quadratic_kappa.
+    With a threshold: also sensitivity, specificity, precision and npv at that
+    threshold (from binary()), and the threshold itself. The threshold is passed in
+    rather than chosen here, because where it comes from differs: for final results
+    it must come from youden_threshold() on the VALIDATION set.
+    """
+    m = scores(probs, hard, soft)
+    m["quadratic_kappa"] = quadratic_kappa(probs, hard)
+    if threshold is not None:
+        b = binary(p_suspicious(probs), suspicious(hard), threshold)
+        m["threshold"] = threshold
+        for k in ("sensitivity", "specificity", "precision", "npv"):
+            m[k] = b[k]
+    return m
+
 
 def confidence_by_spread(probs, spread):
     """Figure 1: mean top probability for each level of reader disagreement."""

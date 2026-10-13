@@ -1,0 +1,29 @@
+# Lung nodule malignancy: hard vs soft labels (LIDC-IDRI)
+# Python 3.11 (the project's .venv). Install everything with:
+#     .venv/bin/pip install -r requirements.txt
+# Versions are the ones installed in .venv when this file was written.
+
+# ---- core: data, CT reading, metrics ----
+numpy==2.4.1
+pandas==3.0.6
+scipy==1.17.1              # pipeline/ct.py: cube resampling (map_coordinates)
+pydicom==3.0.2             # reading the DICOM slices
+pillow==12.1.0             # YOLO slice images (PNG)
+scikit-learn==1.9.1        # metrics, baselines
+scikit-image==0.26.0       # xml_preprocessing/exclusion_checking.ipynb
+matplotlib==3.10.8         # training figures, Grad-CAM, distributions
+
+# ---- deep learning ----
+torch==2.14.0              # the 3D CNN (runs on the M2's "mps" GPU)
+torchvision==0.29.0        # needed by ultralytics
+ultralytics==8.4.157       # YOLO detector (also installs opencv-python, PyYAML, tqdm)
+
+# ---- notebooks: the "LIDC (.venv)" Jupyter kernel ----
+ipykernel==7.1.0           # also provides IPython (used by Model/plots.py show=True)
+
+# ---- optional: only some exploratory notebooks use these ----
+# seaborn                  # dicom_preproccessing/src/HUClipping (HU clipping plots)
+# pylidc                   # pylidc_xml_preprocessing_test only; old package, may clash with numpy 2
+
+# ---- optional: future prototype website ----
+# gradio                   # upload a CT scan, get detections and malignancy ratings

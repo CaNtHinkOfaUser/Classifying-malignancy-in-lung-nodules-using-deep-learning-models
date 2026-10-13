@@ -12,6 +12,10 @@ the test set can't be predicted twice by accident.
 Run from the project folder, with the patches available (on Google Colab, set
 LIDC_PATCH_DIR first, as for training):
     .venv/bin/python Model/no_folds/predict_test_no_fold.py --runs-dir runs/cls_no_fold
+    .venv/bin/python Model/no_folds/predict_test_no_fold.py --runs-dir runs/cls_no_fold_mask
+Each run's config.json says whether it was trained with the box mask ("mask": true),
+and the Dataset and network are built to match. Runs from before --mask have no
+"mask" entry and are CT-only.
 On Colab:
     !python Model/no_folds/predict_test_no_fold.py --runs-dir "{RUNS_DIR}"
 """
@@ -71,17 +75,18 @@ def main():
                      "pass --force only if you really mean to replace it.")
 
     # ---- predict ----
-    test_sets = {}                     # one Dataset per label type; the cubes are the same, only the target differs
+    test_sets = {}                     # one Dataset per (label type, mask); the cubes are the same, only the target differs
     loss_fn = nn.CrossEntropyLoss()
     for run_dir in run_dirs:
         cfg = json.loads((run_dir / "config.json").read_text())
         labels = cfg["labels"]
-        if labels not in test_sets:
-            test_sets[labels] = NoduleDataset("test", labels)     # never augmented
-        test_ds = test_sets[labels]
+        mask = cfg.get("mask", False)     # runs from before --mask existed have no entry: CT only
+        if (labels, mask) not in test_sets:
+            test_sets[labels, mask] = NoduleDataset("test", labels, mask=mask)     # never augmented
+        test_ds = test_sets[labels, mask]
         loader = DataLoader(test_ds, batch_size=32, shuffle=False, num_workers=0)
 
-        model = NoduleNet3D().to(device)
+        model = NoduleNet3D(in_channels=2 if mask else 1).to(device)
         model.load_state_dict(torch.load(run_dir / "best.pt", map_location=device))
         _, probs, idxs = run_epoch(model, loader, loss_fn, device)      # no optimizer: scores only
 

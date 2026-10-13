@@ -37,6 +37,7 @@ PROCESSED = Path("/Volumes/Expansion/processed")
 # The patches live on the Expansion drive. Somewhere else (e.g. Google Colab), point
 # at them with the LIDC_PATCH_DIR environment variable instead of editing this file.
 PATCH_DIR = Path(os.environ.get("LIDC_PATCH_DIR", PROCESSED / "patches_48mm"))
+MASK_DIR = Path(os.environ.get("LIDC_MASK_DIR", PROCESSED / "masks_48mm"))    # same names as the patches
 YOLO_DIR = PROCESSED / "yolo_lidc"
 
 METADATA = DATA / "metadata.csv"

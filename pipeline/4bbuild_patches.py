@@ -8,8 +8,12 @@ Reads:      data/nodules_labels.csv   the 1,885 nodules (>=2 readers) with label
             data/slice_index.csv      (series, z) -> file
 Writes:     /Volumes/Expansion/processed/patches_48mm/<nodule_key>.npy
                 int16 HU, shape (48, 48, 48), axes (z, row, col), 1 mm voxels, z ascending
+            /Volumes/Expansion/processed/masks_48mm/<nodule_key>.npy
+                uint8 0/1, the same shape, axes and voxels as the patch: 1 inside the
+                nodule's box on each slice (the readers' mean box from labels_bb_a.csv)
             extra columns in data/nodules_labels.csv (nodule_key, patch_file, geometry, QC)
-Takes:      ~10 min over USB.
+Takes:      ~10 min over USB. With --masks-only: under a minute, reads no DICOM and
+            leaves the patches and nodules_labels.csv untouched.
 
 The cube is centred on the middle of the nodule's 3D bounding box -- the box
 around every outline on every slice -- not on the widest slice, so a nodule
@@ -24,13 +28,15 @@ that is lopsided in z still sits in the middle of its cube.
 # Refer to patient_split.csv for the splits as the source of truth
 
 
+import argparse
+import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import pandas as pd
 
-from ct import (BOXES, CUBE_MM, CUBE_SPACING, NODULES, PATCH_DIR,
+from ct import (BOXES, CUBE_MM, CUBE_SPACING, MASK_DIR, NODULES, PATCH_DIR,
                 extract_cube, load_series_index, load_slice_index, read_hu, slice_path)
 
 KEY = ["patient_id", "series_instance_uid", "merged_nodule_id"]
@@ -60,8 +66,39 @@ def read_slab(patient_id, series_uid, idxs, cache, pool):
     return np.stack([cache[i] for i in idxs])
 
 
+def box_mask(g, zs, row_spacing, col_spacing, z_spacing, centre_z, centre_row, centre_col):
+    """1 inside the nodule's box on each slice, 0 elsewhere, on the same grid as extract_cube.
+
+    g: this nodule's rows of labels_bb_a.csv (one box per slice). zs: every slice z of the series.
+    Each cube voxel is mapped back into the scan with extract_cube's formulas (same offsets,
+    same spacings), then looked up in the box of the nearest real slice. So a box covers half
+    the gap to the slices either side of it, the same stretch of z that slice's CT does.
+    """
+    n = int(round(CUBE_MM / CUBE_SPACING))
+    off = (np.arange(n) - (n - 1) / 2) * CUBE_SPACING          # mm from the centre
+    z_mm = centre_z + off
+    rows = centre_row + off / row_spacing
+    cols = centre_col + off / col_spacing
+    nearest = zs[np.abs(zs[None, :] - z_mm[:, None]).argmin(axis=1)]   # nearest real slice per cube z
+    on_scan = np.abs(z_mm - nearest) <= z_spacing                      # past the scan's end: no slice
+
+    mask = np.zeros((n, n, n), dtype=bool)
+    for z, x0, x1, y0, y1 in zip(g["z-slice"], g["x_min"], g["x_max"], g["y_min"], g["y_max"]):
+        in_z = on_scan & (np.abs(nearest - z) <= Z_MATCH_MM)
+        in_r = (rows >= y0) & (rows <= y1)                     # row = y, col = x (see ct.py)
+        in_c = (cols >= x0) & (cols <= x1)
+        mask |= in_z[:, None, None] & in_r[None, :, None] & in_c[None, None, :]
+    return mask.astype(np.uint8)
+
+
 if __name__ == "__main__":
+    p = argparse.ArgumentParser(description="Cut a cube and a box mask around every nodule.")
+    p.add_argument("--masks-only", action="store_true",
+                   help="only (re)build the masks: no DICOM read, patches and nodules_labels.csv untouched")
+    args = p.parse_args()
+
     PATCH_DIR.mkdir(parents=True, exist_ok=True)
+    MASK_DIR.mkdir(parents=True, exist_ok=True)
 
     nodules = pd.read_csv(NODULES)
     nodules = nodules.drop(columns=[c for c in NEW_COLS if c in nodules.columns])
@@ -108,6 +145,32 @@ if __name__ == "__main__":
         geo, left_on="nodule_key", right_index=True, how="left")
     nodules["diameter_mm"] = nodules["diameter_px"] * nodules["pixel_spacing_mm"]
     nodules["patch_file"] = nodules["nodule_key"] + ".npy"
+
+    # ---- box masks: geometry only, so no DICOM is read ----
+    boxes_by_nodule = dict(tuple(boxes.groupby("nodule_key")))
+    mask_qc = {}
+    for row in nodules.itertuples():
+        g = boxes_by_nodule[row.nodule_key]
+        s = series.loc[row.series_instance_uid]
+        mask = box_mask(g, slices_by_series[row.series_instance_uid]["z"].to_numpy(),
+                        s["row_spacing"], s["col_spacing"], s["z_spacing"],
+                        row.centre_z_mm, row.centre_row_px, row.centre_col_px)
+        np.save(MASK_DIR / row.patch_file, mask)
+        # what the boxes should add up to, in mm^3: width x height x slice gap, summed over slices
+        box_mm3 = (g["width"] * s["col_spacing"] * g["height"] * s["row_spacing"]).sum() * s["z_spacing"]
+        c = mask.shape[0] // 2                 # even side: the centre falls between voxels c-1 and c
+        mask_qc[row.nodule_key] = {"mask_mm3": mask.sum() * CUBE_SPACING ** 3, "box_mm3": box_mm3,
+                                   "centre_in_mask": bool(mask[c - 1:c + 1, c - 1:c + 1, c - 1:c + 1].any())}
+    mask_qc = pd.DataFrame.from_dict(mask_qc, orient="index")
+    ratio = mask_qc.mask_mm3 / mask_qc.box_mm3
+    print(f"\nmasks: {len(mask_qc)} -> {MASK_DIR}")
+    print(f"  empty masks: {(mask_qc.mask_mm3 == 0).sum()} (MUST be 0)")
+    print(f"  centre of the cube inside the mask: {mask_qc.centre_in_mask.sum()} of {len(mask_qc)}")
+    print(f"  mask volume / box volume: median {ratio.median():.2f} (should be ~1; "
+          f"below 1 for nodules cut off by the cube's edge), p5 {ratio.quantile(.05):.2f}, "
+          f"p95 {ratio.quantile(.95):.2f}")
+    if args.masks_only:
+        sys.exit(0)
 
     # ---- cut the cubes, one series at a time so each slice is read once ----
     half = CUBE_MM / 2 + 1

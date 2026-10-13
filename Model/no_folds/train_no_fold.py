@@ -10,6 +10,11 @@ set LIDC_PATCH_DIR to the unzipped patch folder first; see pipeline/ct.py):
     .venv/bin/python Model/no_folds/train_no_fold.py --labels soft --seed 1
     .venv/bin/python Model/no_folds/train_no_fold.py --labels hard --seed 1 --epochs 1      # quick test
     .venv/bin/python Model/no_folds/train_no_fold.py --labels hard --seed 1 --overfit 32    # memorise check
+    .venv/bin/python Model/no_folds/train_no_fold.py --labels hard --seed 1 --mask          # CT + box mask
+
+--mask adds the nodule's box mask as a 2nd input channel (masks from
+pipeline/4bbuild_patches.py --masks-only). Mask runs go to runs/cls_no_fold_mask/
+instead, so they never overwrite the CT-only runs they are compared with.
 
 --seed k sets the starting weights, the batch order and the augmentation. Hard
 and soft runs with the same seed start from identical weights and see the same
@@ -63,8 +68,13 @@ def parse_args():
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--weight-decay", type=float, default=1e-4)
     p.add_argument("--overfit", type=int, default=0, help="memorise this many train nodules (a check, not a real run)")
-    p.add_argument("--out", type=Path, default=PROJECT / "runs" / "cls_no_fold")
-    return p.parse_args()
+    p.add_argument("--mask", action="store_true", help="add the box mask as a 2nd input channel")
+    p.add_argument("--out", type=Path, default=None,
+                   help="default runs/cls_no_fold, or runs/cls_no_fold_mask with --mask")
+    args = p.parse_args()
+    if args.out is None:
+        args.out = PROJECT / "runs" / ("cls_no_fold_mask" if args.mask else "cls_no_fold")
+    return args
 
 
 def run_epoch(model, loader, loss_fn, device, optimizer=None):
@@ -115,20 +125,20 @@ def main():
 
     # ---- data ----
     t0 = time.time()
-    train_ds = NoduleDataset("train", args.labels)
+    train_ds = NoduleDataset("train", args.labels, mask=args.mask)
     if args.overfit:
         train_ds.augment = False
         train_set = val_set = Subset(train_ds, range(args.overfit))
         val_ds = train_ds
     else:
-        val_ds = NoduleDataset("val", args.labels)
+        val_ds = NoduleDataset("val", args.labels, mask=args.mask)
         train_set, val_set = train_ds, val_ds
     generator = torch.Generator().manual_seed(seed)
     train_loader = DataLoader(train_set, batch_size=args.batch, shuffle=True, num_workers=0, generator=generator)
     val_loader = DataLoader(val_set, batch_size=args.batch, shuffle=False, num_workers=0)
 
     # ---- model, loss, optimiser ----
-    model = NoduleNet3D().to(device)
+    model = NoduleNet3D(in_channels=2 if args.mask else 1).to(device)    # "mask" goes into config.json below
     if args.overfit:
         model.dropout.p = 0.0
     loss_fn = nn.CrossEntropyLoss()        # takes a class index (hard) or 5 probabilities (soft) unchanged

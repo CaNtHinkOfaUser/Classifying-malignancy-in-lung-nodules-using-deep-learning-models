@@ -1,6 +1,6 @@
 # Classifying-malignancy-in-lung-nodules-using-deep-learning-models
 
-## Decisions: 3D CNN, hard vs soft labels (no folds)
+## Decisions: 3D CNN (Classifier) + YOLO (Localiser), hard vs soft labels (no folds)
 
 Fixed before scoring the test set. Nothing below changes after test results are seen.
 

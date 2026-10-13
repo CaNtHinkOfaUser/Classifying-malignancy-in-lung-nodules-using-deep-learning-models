@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 .jupyter/
 .ipynb_checkpoints/
+runs/

@@ -1,4 +1,4 @@
-# Written by Claude for Ishaan
+# Ishaan
 
 """Step 3b. Put every patient in one of 5 folds for the classifier's cross-validation.
 

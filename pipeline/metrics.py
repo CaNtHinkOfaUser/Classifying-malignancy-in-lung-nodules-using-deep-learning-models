@@ -52,10 +52,10 @@ def ece(probs, hard, n_bins=10):
     """
     conf = probs.max(axis=1)
     correct = (probs.argmax(axis=1) + 1) == hard
-    edges = np.linspace(0, 1, n_bins + 1)
+    bin_edges = np.linspace(0, 1, n_bins + 1)
     total = 0.0
-    for lo, hi in zip(edges[:-1], edges[1:]):
-        m = (conf > lo) & (conf <= hi)
+    for lo_edge, hi_edge in zip(bin_edges[:-1], bin_edges[1:]):
+        m = (conf > lo_edge) & (conf <= hi_edge)
         if m.any():
             total += m.mean() * abs(conf[m].mean() - correct[m].mean())
     return total

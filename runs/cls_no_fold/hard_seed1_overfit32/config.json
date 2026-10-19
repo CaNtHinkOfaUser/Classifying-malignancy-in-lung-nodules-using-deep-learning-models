@@ -1,0 +1,17 @@
+{
+  "labels": "hard",
+  "seed": 1,
+  "epochs": 300,
+  "patience": 300,
+  "batch": 32,
+  "lr": 0.001,
+  "weight_decay": 0.0001,
+  "overfit": 32,
+  "out": "/content/drive/MyDrive/01 School/IDP/Capstone Stuff/Colab Testing/3D Malignancy Classifier CNN/runs",
+  "split": "patient_split.csv",
+  "crop": 40,
+  "device": "cuda",
+  "train_nodules": 32,
+  "val_nodules": 32,
+  "parameters": 291861
+}

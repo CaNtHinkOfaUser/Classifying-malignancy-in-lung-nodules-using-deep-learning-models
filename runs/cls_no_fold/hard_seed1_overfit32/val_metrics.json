@@ -1,0 +1,10 @@
+{
+  "balanced_accuracy": 1.0,
+  "auc": 1.0,
+  "ce_vs_readers": 3.125011359088189,
+  "ece": 0.001544640000000097,
+  "best_epoch": 299,
+  "nodules": 32,
+  "lowest_possible_ce": 0.6408354170108305,
+  "size_only": {}
+}

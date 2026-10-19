@@ -1,0 +1,16 @@
+{
+  "balanced_accuracy": 1.0,
+  "auc": 1.0,
+  "ce_vs_readers": 3.201725621393762,
+  "ece": 0.0013292746874999928,
+  "quadratic_kappa": 1.0,
+  "threshold": 0.9991310772499999,
+  "sensitivity": 1.0,
+  "specificity": 1.0,
+  "precision": 1.0,
+  "npv": 1.0,
+  "best_epoch": 300,
+  "nodules": 32,
+  "lowest_possible_ce": 0.6408354170108305,
+  "size_only": {}
+}

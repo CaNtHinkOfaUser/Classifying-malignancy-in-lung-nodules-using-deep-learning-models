@@ -30,7 +30,7 @@ Inputs, always per NODULE:
 import numpy as np
 from sklearn.metrics import balanced_accuracy_score, cohen_kappa_score, roc_auc_score
 
-EPS = 1e-7
+EPS = 1e-7 # epsilon
 
 
 def suspicious(hard_labels):

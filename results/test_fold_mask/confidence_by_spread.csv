@@ -1,0 +1,9 @@
+model,spread,nodules,mean_confidence,lowest_fold,highest_fold,readers_agreement
+A (hard),0 (agreed),59,0.701,0.668,0.723,1.0
+A (hard),1,127,0.652,0.624,0.715,0.615
+A (hard),2,75,0.644,0.621,0.701,0.538
+A (hard),3+ (disagreed most),29,0.55,0.53,0.588,0.44
+B (soft),0 (agreed),59,0.614,0.592,0.646,1.0
+B (soft),1,127,0.492,0.461,0.529,0.615
+B (soft),2,75,0.498,0.463,0.531,0.538
+B (soft),3+ (disagreed most),29,0.43,0.401,0.461,0.44

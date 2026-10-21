@@ -1,0 +1,22 @@
+{
+  "balanced_accuracy": 0.509088312363516,
+  "auc": 0.9252869540873461,
+  "ce_vs_readers": 1.1510846825416903,
+  "ece": 0.1309252753517588,
+  "quadratic_kappa": 0.6953160658882258,
+  "threshold": 0.27188276,
+  "sensitivity": 0.8617021276595744,
+  "specificity": 0.881578947368421,
+  "precision": 0.6923076923076923,
+  "npv": 0.9537366548042705,
+  "best_epoch": 33,
+  "nodules": 398,
+  "lowest_possible_ce": 0.5831529247937067,
+  "size_only": {
+    "nodules": 398.0,
+    "balanced_accuracy": 0.3406745957861967,
+    "auc": 0.9034329507278837,
+    "ce_vs_readers": 1.44835607747012,
+    "ece": 0.0280944408577092
+  }
+}

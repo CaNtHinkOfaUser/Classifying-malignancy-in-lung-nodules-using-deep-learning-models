@@ -1,0 +1,271 @@
+hard_fold1: 1196 train / 399 val nodules, cubes loaded in 17s, 292,293 parameters, device mps
+epoch   1  train 1.3307  val 1.1909  bal 0.312  27s  *best
+epoch   2  train 1.2031  val 1.1534  bal 0.373  27s  *best
+epoch   3  train 1.1757  val 1.1030  bal 0.395  28s  *best
+epoch   5  train 1.1481  val 1.0868  bal 0.369  25s  *best
+epoch   9  train 1.0842  val 1.0064  bal 0.435  24s  *best
+epoch  10  train 1.0738  val 1.0840  bal 0.327  38s
+epoch  11  train 1.0448  val 0.9877  bal 0.419  27s  *best
+epoch  13  train 1.0150  val 0.9620  bal 0.451  46s  *best
+epoch  14  train 0.9854  val 0.9084  bal 0.570  43s  *best
+epoch  19  train 0.9557  val 0.8899  bal 0.582  41s  *best
+epoch  20  train 0.9218  val 0.9336  bal 0.583  42s
+epoch  22  train 0.9268  val 0.8451  bal 0.568  48s  *best
+epoch  30  train 0.9143  val 0.8927  bal 0.544  39s
+epoch  31  train 0.8839  val 0.8155  bal 0.573  30s  *best
+epoch  36  train 0.8970  val 0.8135  bal 0.600  52s  *best
+epoch  40  train 0.8901  val 0.8418  bal 0.583  36s
+epoch  49  train 0.8634  val 0.8128  bal 0.579  32s  *best
+epoch  50  train 0.8628  val 0.8396  bal 0.558  33s
+epoch  60  train 0.8588  val 0.9680  bal 0.597  33s
+no better val loss for 15 epochs: stopping
+best epoch 49, val loss 0.8128 -> /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_mask/hard_fold1
+
+hard_fold1  ·  validation fold 1  ·  best epoch 49 of 64  ·  399 nodules
+                            this run  size only   reference
+  balanced accuracy            0.579      0.376   0.200  chance
+  AUC, suspicious vs not       0.920      0.904   0.500  chance
+  CE vs readers                1.326      1.374   0.616  lowest possible
+  ECE                          0.067      0.047   0.000  perfectly calibrated
+  quadratic kappa              0.816          —   0.000  chance
+  sensitivity *                0.864          —   of suspicious nodules, proportion labelled suspicious
+  specificity *                0.861          —   of non-suspicious, proportion labelled not suspicious
+  * suspicious if P(4) + P(5) >= 0.233, the cut-off that works best on this same
+    validation set, so slightly optimistic. Report the test set with this cut-off instead.
+  figures: /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_mask/hard_fold1/results.png, confusion_matrix.png, reliability.png
+soft_fold1: 1196 train / 399 val nodules, cubes loaded in 25s, 292,293 parameters, device mps
+epoch   1  train 1.4343  val 1.3705  bal 0.310  27s  *best
+epoch   2  train 1.3579  val 1.3427  bal 0.338  26s  *best
+epoch   3  train 1.3405  val 1.3199  bal 0.369  34s  *best
+epoch   9  train 1.2495  val 1.2125  bal 0.550  32s  *best
+epoch  10  train 1.2420  val 1.3141  bal 0.382  34s
+epoch  12  train 1.2157  val 1.2004  bal 0.559  34s  *best
+epoch  16  train 1.1982  val 1.1852  bal 0.525  33s  *best
+epoch  20  train 1.1900  val 1.1992  bal 0.544  33s
+epoch  21  train 1.1824  val 1.1586  bal 0.558  34s  *best
+epoch  27  train 1.1815  val 1.1532  bal 0.528  34s  *best
+epoch  30  train 1.1820  val 1.1599  bal 0.527  35s
+epoch  40  train 1.1709  val 1.2549  bal 0.528  37s
+epoch  42  train 1.1699  val 1.1439  bal 0.535  34s  *best
+epoch  50  train 1.1623  val 1.1488  bal 0.557  36s
+epoch  52  train 1.1562  val 1.1428  bal 0.551  34s  *best
+epoch  53  train 1.1562  val 1.1412  bal 0.593  33s  *best
+epoch  60  train 1.1508  val 1.1836  bal 0.561  45s
+no better val loss for 15 epochs: stopping
+best epoch 53, val loss 1.1412 -> /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_mask/soft_fold1
+
+soft_fold1  ·  validation fold 1  ·  best epoch 53 of 68  ·  399 nodules
+                            this run  size only   reference
+  balanced accuracy            0.593      0.376   0.200  chance
+  AUC, suspicious vs not       0.918      0.904   0.500  chance
+  CE vs readers                1.141      1.374   0.616  lowest possible
+  ECE                          0.213      0.047   0.000  perfectly calibrated
+  quadratic kappa              0.813          —   0.000  chance
+  sensitivity *                0.845          —   of suspicious nodules, proportion labelled suspicious
+  specificity *                0.916          —   of non-suspicious, proportion labelled not suspicious
+  * suspicious if P(4) + P(5) >= 0.318, the cut-off that works best on this same
+    validation set, so slightly optimistic. Report the test set with this cut-off instead.
+  figures: /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_mask/soft_fold1/results.png, confusion_matrix.png, reliability.png
+hard_fold2: 1196 train / 399 val nodules, cubes loaded in 18s, 292,293 parameters, device mps
+epoch   1  train 1.2848  val 1.2426  bal 0.300  31s  *best
+epoch   2  train 1.1883  val 1.2052  bal 0.382  49s  *best
+epoch   3  train 1.1518  val 1.1801  bal 0.355  57s  *best
+epoch   4  train 1.1594  val 1.1531  bal 0.349  67s  *best
+epoch   5  train 1.1319  val 1.1426  bal 0.350  52s  *best
+epoch   7  train 1.0650  val 1.1116  bal 0.414  49s  *best
+epoch  10  train 1.0104  val 1.1462  bal 0.471  33s
+epoch  11  train 0.9953  val 1.0798  bal 0.381  27s  *best
+epoch  12  train 0.9818  val 1.0275  bal 0.489  27s  *best
+epoch  15  train 0.9361  val 0.9954  bal 0.491  27s  *best
+epoch  20  train 0.9125  val 0.9669  bal 0.491  34s  *best
+epoch  30  train 0.8668  val 1.2192  bal 0.380  38s
+epoch  31  train 0.8603  val 0.9478  bal 0.500  36s  *best
+epoch  32  train 0.8661  val 0.9209  bal 0.522  36s  *best
+epoch  36  train 0.8587  val 0.9143  bal 0.514  37s  *best
+epoch  37  train 0.8424  val 0.9076  bal 0.513  37s  *best
+epoch  38  train 0.8645  val 0.9018  bal 0.515  36s  *best
+epoch  40  train 0.8789  val 0.9282  bal 0.562  38s
+epoch  50  train 0.8358  val 0.9898  bal 0.576  68s
+no better val loss for 15 epochs: stopping
+best epoch 38, val loss 0.9018 -> /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_mask/hard_fold2
+
+hard_fold2  ·  validation fold 2  ·  best epoch 38 of 53  ·  399 nodules
+                            this run  size only   reference
+  balanced accuracy            0.515      0.363   0.200  chance
+  AUC, suspicious vs not       0.920      0.912   0.500  chance
+  CE vs readers                1.299      1.400   0.632  lowest possible
+  ECE                          0.073      0.029   0.000  perfectly calibrated
+  quadratic kappa              0.702          —   0.000  chance
+  sensitivity *                0.911          —   of suspicious nodules, proportion labelled suspicious
+  specificity *                0.840          —   of non-suspicious, proportion labelled not suspicious
+  * suspicious if P(4) + P(5) >= 0.123, the cut-off that works best on this same
+    validation set, so slightly optimistic. Report the test set with this cut-off instead.
+  figures: /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_mask/hard_fold2/results.png, confusion_matrix.png, reliability.png
+soft_fold2: 1196 train / 399 val nodules, cubes loaded in 17s, 292,293 parameters, device mps
+epoch   1  train 1.4072  val 1.4084  bal 0.271  27s  *best
+epoch   3  train 1.3285  val 1.3282  bal 0.362  40s  *best
+epoch   4  train 1.3162  val 1.3153  bal 0.396  34s  *best
+epoch   7  train 1.2449  val 1.3002  bal 0.398  34s  *best
+epoch   9  train 1.2264  val 1.2128  bal 0.482  35s  *best
+epoch  10  train 1.2166  val 1.2279  bal 0.503  34s
+epoch  12  train 1.2120  val 1.1934  bal 0.535  32s  *best
+epoch  19  train 1.1784  val 1.1856  bal 0.551  32s  *best
+epoch  20  train 1.1733  val 1.2232  bal 0.466  32s
+epoch  23  train 1.1726  val 1.1849  bal 0.528  37s  *best
+epoch  30  train 1.1674  val 1.2092  bal 0.494  33s
+epoch  32  train 1.1662  val 1.1701  bal 0.519  37s  *best
+epoch  40  train 1.1627  val 1.2149  bal 0.522  32s
+no better val loss for 15 epochs: stopping
+best epoch 32, val loss 1.1701 -> /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_mask/soft_fold2
+
+soft_fold2  ·  validation fold 2  ·  best epoch 32 of 47  ·  399 nodules
+                            this run  size only   reference
+  balanced accuracy            0.519      0.363   0.200  chance
+  AUC, suspicious vs not       0.926      0.912   0.500  chance
+  CE vs readers                1.170      1.400   0.632  lowest possible
+  ECE                          0.128      0.029   0.000  perfectly calibrated
+  quadratic kappa              0.704          —   0.000  chance
+  sensitivity *                0.920          —   of suspicious nodules, proportion labelled suspicious
+  specificity *                0.847          —   of non-suspicious, proportion labelled not suspicious
+  * suspicious if P(4) + P(5) >= 0.218, the cut-off that works best on this same
+    validation set, so slightly optimistic. Report the test set with this cut-off instead.
+  figures: /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_mask/soft_fold2/results.png, confusion_matrix.png, reliability.png
+hard_fold3: 1196 train / 399 val nodules, cubes loaded in 18s, 292,293 parameters, device mps
+epoch   1  train 1.2864  val 1.1965  bal 0.286  27s  *best
+epoch   2  train 1.1721  val 1.1588  bal 0.371  38s  *best
+epoch   4  train 1.1465  val 1.1376  bal 0.405  35s  *best
+epoch   5  train 1.1371  val 1.1237  bal 0.352  33s  *best
+epoch   8  train 1.1001  val 1.0901  bal 0.365  33s  *best
+epoch  10  train 1.0770  val 1.1503  bal 0.200  33s
+epoch  11  train 1.0552  val 1.0395  bal 0.365  36s  *best
+epoch  14  train 0.9712  val 1.0355  bal 0.499  33s  *best
+epoch  15  train 0.9458  val 1.0179  bal 0.540  33s  *best
+epoch  16  train 0.9317  val 1.0118  bal 0.552  33s  *best
+epoch  20  train 0.9282  val 1.1873  bal 0.427  36s
+epoch  22  train 0.9029  val 0.9487  bal 0.542  31s  *best
+epoch  30  train 0.8658  val 0.9847  bal 0.501  32s
+epoch  32  train 0.8720  val 0.9342  bal 0.553  32s  *best
+epoch  39  train 0.8589  val 0.9285  bal 0.545  32s  *best
+epoch  40  train 0.8443  val 1.0344  bal 0.539  32s
+epoch  50  train 0.8306  val 0.9437  bal 0.539  34s
+no better val loss for 15 epochs: stopping
+best epoch 39, val loss 0.9285 -> /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_mask/hard_fold3
+
+hard_fold3  ·  validation fold 3  ·  best epoch 39 of 54  ·  399 nodules
+                            this run  size only   reference
+  balanced accuracy            0.545      0.385   0.200  chance
+  AUC, suspicious vs not       0.900      0.887   0.500  chance
+  CE vs readers                1.477      1.404   0.642  lowest possible
+  ECE                          0.071      0.033   0.000  perfectly calibrated
+  quadratic kappa              0.714          —   0.000  chance
+  sensitivity *                0.903          —   of suspicious nodules, proportion labelled suspicious
+  specificity *                0.780          —   of non-suspicious, proportion labelled not suspicious
+  * suspicious if P(4) + P(5) >= 0.124, the cut-off that works best on this same
+    validation set, so slightly optimistic. Report the test set with this cut-off instead.
+  figures: /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_mask/hard_fold3/results.png, confusion_matrix.png, reliability.png
+soft_fold3: 1196 train / 399 val nodules, cubes loaded in 17s, 292,293 parameters, device mps
+epoch   1  train 1.4087  val 1.3589  bal 0.328  27s  *best
+epoch   2  train 1.3568  val 1.3501  bal 0.351  30s  *best
+epoch   3  train 1.3482  val 1.3408  bal 0.345  42s  *best
+epoch   4  train 1.3345  val 1.3241  bal 0.349  35s  *best
+epoch   5  train 1.3194  val 1.3190  bal 0.309  33s  *best
+epoch   7  train 1.2895  val 1.2978  bal 0.404  34s  *best
+epoch   8  train 1.2563  val 1.2754  bal 0.455  33s  *best
+epoch  10  train 1.2295  val 1.3411  bal 0.390  34s
+epoch  13  train 1.2016  val 1.2455  bal 0.494  37s  *best
+epoch  17  train 1.1793  val 1.2249  bal 0.489  35s  *best
+epoch  20  train 1.1934  val 1.2471  bal 0.515  32s
+epoch  21  train 1.1861  val 1.2237  bal 0.580  32s  *best
+epoch  22  train 1.1669  val 1.2005  bal 0.527  34s  *best
+epoch  30  train 1.1633  val 1.2090  bal 0.534  34s
+epoch  34  train 1.1524  val 1.2002  bal 0.547  33s  *best
+epoch  39  train 1.1432  val 1.1957  bal 0.539  33s  *best
+epoch  40  train 1.1456  val 1.2604  bal 0.569  34s
+epoch  50  train 1.1461  val 1.1945  bal 0.567  33s  *best
+epoch  52  train 1.1411  val 1.1945  bal 0.542  34s  *best
+epoch  59  train 1.1261  val 1.1940  bal 0.547  32s  *best
+epoch  60  train 1.1266  val 1.2055  bal 0.542  34s
+epoch  64  train 1.1398  val 1.1893  bal 0.567  32s  *best
+epoch  70  train 1.1313  val 1.1989  bal 0.545  36s
+no better val loss for 15 epochs: stopping
+best epoch 64, val loss 1.1893 -> /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_mask/soft_fold3
+
+soft_fold3  ·  validation fold 3  ·  best epoch 64 of 79  ·  399 nodules
+                            this run  size only   reference
+  balanced accuracy            0.567      0.385   0.200  chance
+  AUC, suspicious vs not       0.893      0.887   0.500  chance
+  CE vs readers                1.189      1.404   0.642  lowest possible
+  ECE                          0.120      0.033   0.000  perfectly calibrated
+  quadratic kappa              0.733          —   0.000  chance
+  sensitivity *                0.841          —   of suspicious nodules, proportion labelled suspicious
+  specificity *                0.829          —   of non-suspicious, proportion labelled not suspicious
+  * suspicious if P(4) + P(5) >= 0.265, the cut-off that works best on this same
+    validation set, so slightly optimistic. Report the test set with this cut-off instead.
+  figures: /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_mask/soft_fold3/results.png, confusion_matrix.png, reliability.png
+hard_fold4: 1197 train / 398 val nodules, cubes loaded in 17s, 292,293 parameters, device mps
+epoch   1  train 1.2983  val 1.2341  bal 0.277  29s  *best
+epoch   2  train 1.1734  val 1.2207  bal 0.319  38s  *best
+epoch   4  train 1.1349  val 1.1817  bal 0.349  40s  *best
+epoch   5  train 1.1317  val 1.1682  bal 0.301  34s  *best
+epoch   7  train 1.1003  val 1.1681  bal 0.320  35s  *best
+epoch   9  train 1.0719  val 1.0955  bal 0.404  34s  *best
+epoch  10  train 1.0304  val 1.0877  bal 0.472  36s  *best
+epoch  12  train 0.9888  val 1.0207  bal 0.567  35s  *best
+epoch  14  train 0.9841  val 0.9921  bal 0.502  32s  *best
+epoch  20  train 0.9096  val 0.9974  bal 0.544  30s
+epoch  21  train 0.8919  val 0.9456  bal 0.576  29s  *best
+epoch  22  train 0.8882  val 0.9113  bal 0.510  42s  *best
+epoch  30  train 0.8651  val 0.9703  bal 0.581  25s
+epoch  32  train 0.8661  val 0.8891  bal 0.524  25s  *best
+epoch  37  train 0.8814  val 0.8839  bal 0.571  26s  *best
+epoch  40  train 0.8481  val 0.8935  bal 0.541  26s
+epoch  50  train 0.8260  val 0.9510  bal 0.538  25s
+no better val loss for 15 epochs: stopping
+best epoch 37, val loss 0.8839 -> /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_mask/hard_fold4
+
+hard_fold4  ·  validation fold 4  ·  best epoch 37 of 52  ·  398 nodules
+                            this run  size only   reference
+  balanced accuracy            0.571      0.341   0.200  chance
+  AUC, suspicious vs not       0.921      0.903   0.500  chance
+  CE vs readers                1.281      1.448   0.583  lowest possible
+  ECE                          0.063      0.028   0.000  perfectly calibrated
+  quadratic kappa              0.749          —   0.000  chance
+  sensitivity *                0.840          —   of suspicious nodules, proportion labelled suspicious
+  specificity *                0.885          —   of non-suspicious, proportion labelled not suspicious
+  * suspicious if P(4) + P(5) >= 0.206, the cut-off that works best on this same
+    validation set, so slightly optimistic. Report the test set with this cut-off instead.
+  figures: /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_mask/hard_fold4/results.png, confusion_matrix.png, reliability.png
+soft_fold4: 1197 train / 398 val nodules, cubes loaded in 17s, 292,293 parameters, device mps
+epoch   1  train 1.4274  val 1.3793  bal 0.264  25s  *best
+epoch   2  train 1.3560  val 1.3562  bal 0.309  24s  *best
+epoch   3  train 1.3405  val 1.3471  bal 0.304  24s  *best
+epoch   4  train 1.3312  val 1.3431  bal 0.364  24s  *best
+epoch   5  train 1.3253  val 1.3153  bal 0.372  24s  *best
+epoch   7  train 1.2813  val 1.2878  bal 0.403  27s  *best
+epoch   8  train 1.2661  val 1.2755  bal 0.355  26s  *best
+epoch   9  train 1.2617  val 1.2073  bal 0.461  25s  *best
+epoch  10  train 1.2320  val 1.2181  bal 0.452  25s
+epoch  12  train 1.2046  val 1.2019  bal 0.556  26s  *best
+epoch  13  train 1.2128  val 1.1706  bal 0.487  30s  *best
+epoch  20  train 1.1924  val 1.3363  bal 0.533  30s
+epoch  21  train 1.1881  val 1.1699  bal 0.503  30s  *best
+epoch  23  train 1.1924  val 1.1681  bal 0.528  30s  *best
+epoch  28  train 1.1837  val 1.1608  bal 0.536  43s  *best
+epoch  30  train 1.1719  val 1.1968  bal 0.580  40s
+epoch  33  train 1.1775  val 1.1511  bal 0.509  33s  *best
+epoch  40  train 1.1618  val 1.1746  bal 0.548  32s
+no better val loss for 15 epochs: stopping
+best epoch 33, val loss 1.1511 -> /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_mask/soft_fold4
+
+soft_fold4  ·  validation fold 4  ·  best epoch 33 of 48  ·  398 nodules
+                            this run  size only   reference
+  balanced accuracy            0.509      0.341   0.200  chance
+  AUC, suspicious vs not       0.925      0.903   0.500  chance
+  CE vs readers                1.151      1.448   0.583  lowest possible
+  ECE                          0.131      0.028   0.000  perfectly calibrated
+  quadratic kappa              0.695          —   0.000  chance
+  sensitivity *                0.862          —   of suspicious nodules, proportion labelled suspicious
+  specificity *                0.882          —   of non-suspicious, proportion labelled not suspicious
+  * suspicious if P(4) + P(5) >= 0.272, the cut-off that works best on this same
+    validation set, so slightly optimistic. Report the test set with this cut-off instead.
+  figures: /Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_mask/soft_fold4/results.png, confusion_matrix.png, reliability.png

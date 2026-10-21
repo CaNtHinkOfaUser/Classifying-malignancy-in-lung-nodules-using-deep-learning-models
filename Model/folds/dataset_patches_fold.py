@@ -30,11 +30,14 @@ class NoduleDataset(Dataset):
         self.cubes = np.stack([np.load(PATCH_DIR / f) for f in self.df["patch_file"]])
         # the box masks, same file names in their own folder: (N, 48, 48, 48), 0/1
         self.masks = np.stack([np.load(MASK_DIR / f) for f in self.df["patch_file"]]) if mask else None
-        self.hard = self.df["hard"].to_numpy()
-        self.soft = self.df[SOFT_COLS].to_numpy()
+        # stored as the model's targets, as in dataset_patches_no_fold.py
+        self.hard = torch.tensor(self.df["hard"].to_numpy() - 1, dtype=torch.long)    # class 0..4 = rating 1..5
+        self.soft = torch.tensor(self.df[SOFT_COLS].to_numpy(), dtype=torch.float32)  # share of readers per rating
         self.labels = labels
         self.augment = (part == "train")          # only train gets random changes
-        self.rng = np.random.default_rng(seed)     # randomness follows the run's seed
+        # Randomness: torch's global generator, seeded by train.py's torch.manual_seed(seed),
+        # drawn in the same order as Model/no_folds/dataset_patches_no_fold.py, so a seed
+        # means the same thing in both experiments. `seed` is kept so old calls still work.
 
     def __len__(self):
         return len(self.df)
@@ -49,7 +52,8 @@ class NoduleDataset(Dataset):
         # 1. crop 40 out of 48; a start of 4 is the exact centre
         start_centre = (48 - CROP) // 2
         if self.augment:
-            o = self.rng.integers(start_centre - MAX_SHIFT, start_centre + MAX_SHIFT + 1, size=3)
+            lo, hi = max(start_centre - MAX_SHIFT, 0), min(start_centre + MAX_SHIFT, 48 - CROP)
+            o = [int(s) for s in torch.randint(lo, hi + 1, (3,))]
         else:
             o = [start_centre, start_centre, start_centre]
         x = x[..., o[0]:o[0] + CROP, o[1]:o[1] + CROP, o[2]:o[2] + CROP]
@@ -57,12 +61,12 @@ class NoduleDataset(Dataset):
         # 2. augment: random flips on each axis, random quarter-turn
         if self.augment:
             for axis in (-3, -2, -1):
-                if self.rng.random() < 0.5:
+                if torch.rand(1).item() < 0.5:
                     x = np.flip(x, axis=axis)
-            x = np.rot90(x, k=self.rng.integers(0, 4), axes=(-2, -1))
+            x = np.rot90(x, k=int(torch.randint(4, (1,)).item()), axes=(-2, -1))
 
         # 3. normalise the CT: HU [-1000, 400] -> [-1, 1] (the mask stays 0/1),
-        #    then a (1, 32, 32, 32) tensor, or (2, 32, 32, 32) with the mask
+        #    then a (1, 40, 40, 40) tensor, or (2, 40, 40, 40) with the mask
         if self.masks is not None:
             x = np.stack([(np.clip(x[0], -1000, 400) + 300) / 700, x[1]])
         else:
@@ -70,8 +74,5 @@ class NoduleDataset(Dataset):
         x = torch.from_numpy(np.ascontiguousarray(x, dtype=np.float32))
 
         # 4. the target: the ONLY difference between the two models
-        if self.labels == "hard":
-            target = torch.tensor(self.hard[i] - 1, dtype=torch.long)
-        else:
-            target = torch.tensor(self.soft[i], dtype=torch.float32)
+        target = self.hard[i] if self.labels == "hard" else self.soft[i]
         return x, target, i

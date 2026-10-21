@@ -10,9 +10,15 @@ Writes:     data/patient_folds.csv   patient_id -> fold 0-4, the classifier's so
 Rerunning gives the same folds (fixed seed). Never edit the file by hand.
 
 How the folds are used is one rule, ct.fold_role: fold 0 is the locked test
-set (20% of patients), untouched until one final evaluation at the very end.
-Cross-validation runs on folds 1-4: the run for fold k picks its best epoch and
-threshold on fold k and trains on the other three.
+set, untouched until one final evaluation at the very end. Cross-validation
+runs on folds 1-4: the run for fold k picks its best epoch and threshold on
+fold k and trains on the other three.
+
+Fold 0 is EXACTLY the test split of patient_split.csv (the no-folds test set,
+290 nodules), so the folds and no-folds experiments are scored on the same
+patients and their numbers can be compared directly. Folds 1-4 divide the
+no-folds train + val patients (1,595 nodules). The first version of these
+folds (fold 0 drawn at random) is kept in data/old_folds_v1/.
 """
 
 from pathlib import Path
@@ -23,10 +29,14 @@ import pandas as pd
 DATA = Path(__file__).resolve().parent.parent / "data"
 NODULES = DATA / "nodules_labels.csv"
 FOLDS = DATA / "patient_folds.csv"
+SPLIT = DATA / "patient_split.csv"
 N_FOLDS = 5
+CV_FOLDS = [1, 2, 3, 4]
 SEED = 42
 
 nodules = pd.read_csv(NODULES)
+split_of = pd.read_csv(SPLIT).set_index("patient_id")["split"]
+assert nodules["patient_id"].isin(split_of.index).all(), "a patient is missing from patient_split.csv"
 
 # Folds are made of whole PATIENTS, never nodules or scans: all of a patient's
 # nodules (and both scans, for the 7 patients who have two) share one fold.
@@ -35,23 +45,25 @@ patients = (nodules.groupby("patient_id")
                         n_nodules=("hard", "size"))
                    .reset_index())
 
-# Balanced and stratified. Within each stratum, shuffle the patients, take the
-# ones with the most nodules first, and give each to the fold that has the
-# fewest nodules from this stratum so far (ties: fewest nodules overall, then
-# the lowest fold number). Plain round-robin left folds between 345 and 398
-# nodules; this gives 377 in every fold and the same label mix.
+# Fold 0 = the no-folds test patients, unchanged.
+assign = {pid: 0 for pid in patients["patient_id"] if split_of[pid] == "test"}
+patients = patients[~patients["patient_id"].isin(assign)]
+
+# Folds 1-4: balanced and stratified. Within each stratum, shuffle the patients,
+# take the ones with the most nodules first, and give each to the fold that has
+# the fewest nodules from this stratum so far (ties: fewest nodules overall, then
+# the lowest fold number), so every fold gets the same size and label mix.
 rng = np.random.default_rng(SEED)
-assign = {}
-total = np.zeros(N_FOLDS)
+total = np.zeros(len(CV_FOLDS))
 for stratum, group in patients.groupby("stratum"):
     group = group.sample(frac=1, random_state=int(rng.integers(1 << 31)))
     group = group.sort_values("n_nodules", ascending=False, kind="stable")
-    load = np.zeros(N_FOLDS)
+    load = np.zeros(len(CV_FOLDS))
     for pid, count in zip(group["patient_id"], group["n_nodules"]):
-        fold = int(np.lexsort((np.arange(N_FOLDS), total, load))[0])
-        assign[pid] = fold
-        load[fold] += count
-        total[fold] += count
+        j = int(np.lexsort((np.arange(len(CV_FOLDS)), total, load))[0])
+        assign[pid] = CV_FOLDS[j]
+        load[j] += count
+        total[j] += count
 
 folds = pd.DataFrame({"patient_id": list(assign), "fold": list(assign.values())})
 folds = folds.sort_values("patient_id")
@@ -63,6 +75,8 @@ nodules.to_csv(NODULES, index=False)
 # ---- checks ----
 assert nodules["fold"].notna().all(), "a nodule has no fold"
 assert (nodules.groupby("patient_id")["fold"].nunique() == 1).all(), "a patient is in two folds"
+assert ((nodules["fold"] == 0) == (nodules["patient_id"].map(split_of) == "test")).all(), \
+    "fold 0 is not exactly the no-folds test set"
 
 summary = nodules.groupby("fold").agg(
     patients=("patient_id", "nunique"),

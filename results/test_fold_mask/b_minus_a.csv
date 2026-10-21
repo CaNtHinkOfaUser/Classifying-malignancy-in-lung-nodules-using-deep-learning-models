@@ -1,0 +1,6 @@
+metric,b_minus_a,ci_low,ci_high,interval_excludes_0
+balanced_accuracy,-0.0035,-0.0327,0.0272,False
+auc,0.0011,-0.0021,0.0044,False
+ce_vs_readers,-0.1438,-0.1951,-0.097,True
+ece,0.0677,-0.015,0.1239,False
+quadratic_kappa,0.0046,-0.0251,0.0362,False

@@ -48,7 +48,7 @@ from torch.utils.data import DataLoader, Subset
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))        # Model/folds/: the folds Dataset
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))    # Model/: the shared net.py and plots.py
-from dataset_patches_fold import NoduleDataset
+from dataset_patches_fold import CROP, NoduleDataset
 from net import NoduleNet3D
 
 PROJECT = Path(__file__).resolve().parents[2]        # Model/folds/train.py -> the project folder
@@ -107,7 +107,12 @@ def main():
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+    if torch.cuda.is_available():          # Colab's GPU
+        device = torch.device("cuda")
+    elif torch.backends.mps.is_available():  # the M2's GPU
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
 
     name = f"{args.labels}_fold{args.fold}" + (f"_overfit{args.overfit}" if args.overfit else "")
     out_dir = args.out / name
@@ -135,7 +140,7 @@ def main():
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
     config = {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()}
-    config.update(seed=seed, device=str(device), train_nodules=len(train_set), val_nodules=len(val_set),
+    config.update(seed=seed, device=str(device), crop=CROP, train_nodules=len(train_set), val_nodules=len(val_set),
                   parameters=sum(p.numel() for p in model.parameters()))
     (out_dir / "config.json").write_text(json.dumps(config, indent=2))
     print(f"{name}: {len(train_set)} train / {len(val_set)} val nodules, "
@@ -147,7 +152,7 @@ def main():
         t = time.time()
         train_loss, _, _ = run_epoch(model, train_loader, loss_fn, device, optimizer)
         val_loss, probs, idxs = run_epoch(model, val_loader, loss_fn, device)
-        hard = val_ds.hard[idxs]
+        hard = val_ds.hard[idxs].numpy() + 1        # back to ratings 1..5
         pred = probs.argmax(axis=1) + 1
         with warnings.catch_warnings():    # a 32-nodule overfit set may lack a rating
             warnings.simplefilter("ignore")

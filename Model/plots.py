@@ -145,13 +145,14 @@ def _confusion_png(hard, pred, title, path):
     plt.close(fig)
 
 
-def _reliability_png(probs, hard, ece, title, path, min_n=10):
+def _reliability_png(probs, hard, ece, title, path, min_n=10, counted="nodules"):
+    # counted: what the bar numbers count -- "predictions" when several runs' predictions are pooled
     conf = probs.max(axis=1)
     correct = (probs.argmax(axis=1) + 1) == hard
     edges = np.linspace(0, 1, 11)
     fig, ax = plt.subplots(figsize=(5.6, 4.8), facecolor=SURFACE)
     _style(ax, f"{title}  (ECE {ece:.3f})", pad=22)
-    ax.annotate(f"dashed: perfectly calibrated · numbers: nodules per bin · pale: fewer than {min_n}",
+    ax.annotate(f"dashed: perfectly calibrated · numbers: {counted} per bin · pale: fewer than {min_n}",
                 xy=(0, 1), xycoords="axes fraction", xytext=(0, 5), textcoords="offset points",
                 va="bottom", fontsize=8, color=INK_2)
     ax.plot([0, 1], [0, 1], color=MUTED, linewidth=1.2, linestyle=DASHED, zorder=1)

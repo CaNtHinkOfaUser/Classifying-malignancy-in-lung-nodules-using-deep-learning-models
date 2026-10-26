@@ -13,6 +13,8 @@ set LIDC_PATCH_DIR to the unzipped patch folder first; see pipeline/ct.py):
     .venv/bin/python Model/no_folds/train_no_fold.py --labels hard --seed 1 --mask          # CT + box mask
     .venv/bin/python Model/no_folds/train_no_fold.py --labels hard --seed 1 --mask --loss weighted
                                                     # class-weighted loss -> runs/cls_no_fold_mask_weighted/
+    (weighted: each model's class weights come from its own training targets -- median ratings
+     for --labels hard, readers' shares for --labels soft; see Model/losses.py)
 
 --mask adds the nodule's box mask as a 2nd input channel (masks from
 pipeline/4bbuild_patches.py --masks-only). Mask runs go to runs/cls_no_fold_mask/
@@ -151,7 +153,8 @@ def main():
         model.dropout.p = 0.0
     # every loss takes a class index (hard) or 5 probabilities (soft) unchanged.
     # The same loss picks the best epoch on validation, so selection matches training.
-    loss_fn, weights = make_loss(args.loss, train_ds.hard, args.weight_power)   # Model/losses.py
+    # --loss weighted: weights from this model's own training targets (median ratings or readers' shares)
+    loss_fn, weights = make_loss(args.loss, args.labels, train_ds.hard, train_ds.soft, args.weight_power)   # Model/losses.py
     loss_fn = loss_fn.to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
@@ -159,7 +162,9 @@ def main():
     config.update(split="patient_split.csv", crop=CROP, device=str(device),
                   train_nodules=len(train_set), val_nodules=len(val_set),
                   parameters=sum(p.numel() for p in model.parameters()),
-                  class_weights=None if weights is None else [round(float(w), 4) for w in weights])
+                  class_weights=None if weights is None else [round(float(w), 4) for w in weights],
+                  weights_from=None if weights is None else
+                               ("median ratings" if args.labels == "hard" else "readers' shares"))
     (out_dir / "config.json").write_text(json.dumps(config, indent=2))
     print(f"{name}: {len(train_set)} train / {len(val_set)} val nodules, {CROP} mm crop, "
           f"cubes loaded in {time.time() - t0:.0f}s, {config['parameters']:,} parameters, device {device}", flush=True)

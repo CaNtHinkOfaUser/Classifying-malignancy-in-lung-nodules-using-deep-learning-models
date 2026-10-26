@@ -10,18 +10,19 @@
   "mask": true,
   "loss": "weighted",
   "weight_power": 0.5,
-  "out": "/Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_no_fold_mask_weighted",
+  "out": "/content/drive/MyDrive/01 School/IDP/Capstone Stuff/Colab Testing/3D Malignancy Classifier CNN/runs_weights",
   "split": "patient_split.csv",
   "crop": 40,
-  "device": "mps",
+  "device": "cuda",
   "train_nodules": 1305,
   "val_nodules": 290,
   "parameters": 292293,
   "class_weights": [
-    1.2024,
-    1.0152,
-    0.568,
-    0.9515,
-    1.2629
-  ]
+    1.0549,
+    0.885,
+    0.6609,
+    1.1104,
+    1.2888
+  ],
+  "weights_from": "readers' shares"
 }

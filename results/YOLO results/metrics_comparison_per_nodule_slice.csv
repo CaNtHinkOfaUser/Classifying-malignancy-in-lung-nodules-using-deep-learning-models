@@ -1,0 +1,63 @@
+Split,Metric,YOLO26s 640,YOLO26s 1024,YOLO11s 1024,How it is measured
+Test set,Scans,141,141,141,CT scans in this split
+Test set,Slices,31655,31655,31655,Every slice of every scan
+Test set,Nodules (any reader),397,397,397,Nodules marked by at least 1 of 4 radiologists
+Test set,Nodules (>=2 readers),290,290,290,Nodules marked by at least 2 radiologists (main target)
+Test set,Confidence threshold,0.4967,0.5201,0.555,Chosen on validation: highest threshold still finding 90% of >=2-reader nodules; the same value is used on test
+Test set,"CPM, >=2-reader nodules",0.76,0.769,0.773,"Main score (LUNA16-style): average share of nodules found at 0.125, 0.25, 0.5, 1, 2, 4, 8 false alarms per scan"
+Test set,"CPM, all nodules",0.669,0.681,0.678,"Same, counting every nodule"
+Test set,"Nodules found, >=2 readers",87.9%,89.7%,87.6%,Per-nodule sensitivity at the chosen threshold
+Test set,"Nodules found, all",79.3% (315/397),82.4% (327/397),78.6% (312/397),Per-nodule sensitivity at the chosen threshold
+Test set,False alarms per scan,1.929,1.908,1.773,"False-alarm candidates (boxes linked across slices) per scan, at the chosen threshold"
+Test set,Found <6 mm (>=2 readers),58/76,61/76,58/76,By nodule size
+Test set,Found 6-10 mm (>=2 readers),112/120,115/120,113/120,By nodule size
+Test set,Found >=10 mm (>=2 readers),85/94,84/94,83/94,By nodule size
+Test set,Nodule-free scans with no false alarm,10/20,8/20,9/20,Scan-level specificity
+Test set,Found at 0.125 false alarms/scan (>=2 readers),44.1%,46.2%,50.0%,FROC curve point
+Test set,Found at 0.25 false alarms/scan (>=2 readers),57.2%,58.6%,62.1%,FROC curve point
+Test set,Found at 0.5 false alarms/scan (>=2 readers),70.7%,71.0%,70.3%,FROC curve point
+Test set,Found at 1 false alarms/scan (>=2 readers),80.0%,83.5%,81.7%,FROC curve point
+Test set,Found at 2 false alarms/scan (>=2 readers),88.6%,89.7%,87.9%,FROC curve point
+Test set,Found at 4 false alarms/scan (>=2 readers),94.8%,93.1%,93.5%,FROC curve point
+Test set,Found at 8 false alarms/scan (>=2 readers),96.5%,96.2%,95.5%,FROC curve point
+Test set,True positive slices,1227,1226,1197,Nodule slice with a correct box
+Test set,False negative slices,805,806,835,Nodule slice with no correct box
+Test set,False positive slices,519,492,424,Nodule-free slice with a box
+Test set,True negative slices,29104,29131,29199,Nodule-free slice with no box
+Test set,Slice sensitivity,60.4%,60.3%,58.9%,TP / (TP + FN)
+Test set,Slice specificity,98.2%,98.3%,98.6%,TN / (TN + FP)
+Test set,Slice accuracy,95.8%,95.9%,96.0%,(TP + TN) / all slices; high because ~94% of slices have no nodule
+Test set,Slice balanced accuracy,79.3%,79.3%,78.7%,Average of sensitivity and specificity
+Test set,Slice precision,70.3%,71.4%,73.8%,TP / (TP + FP)
+Test set,Slice F1,0.65,0.654,0.655,Balance of precision and sensitivity
+Validation set,Scans,140,140,140,CT scans in this split
+Validation set,Slices,32734,32734,32734,Every slice of every scan
+Validation set,Nodules (any reader),378,378,378,Nodules marked by at least 1 of 4 radiologists
+Validation set,Nodules (>=2 readers),290,290,290,Nodules marked by at least 2 radiologists (main target)
+Validation set,Confidence threshold,0.4967,0.5201,0.555,Chosen on validation: highest threshold still finding 90% of >=2-reader nodules; the same value is used on test
+Validation set,"CPM, >=2-reader nodules",0.801,0.793,0.815,"Main score (LUNA16-style): average share of nodules found at 0.125, 0.25, 0.5, 1, 2, 4, 8 false alarms per scan"
+Validation set,"CPM, all nodules",0.716,0.708,0.724,"Same, counting every nodule"
+Validation set,"Nodules found, >=2 readers",90.0%,90.0%,90.0%,Per-nodule sensitivity at the chosen threshold
+Validation set,"Nodules found, all",83.1% (314/378),82.8% (313/378),81.8% (309/378),Per-nodule sensitivity at the chosen threshold
+Validation set,False alarms per scan,2.086,2.071,1.7,"False-alarm candidates (boxes linked across slices) per scan, at the chosen threshold"
+Validation set,Found <6 mm (>=2 readers),47/60,48/60,46/60,By nodule size
+Validation set,Found 6-10 mm (>=2 readers),129/142,129/142,130/142,By nodule size
+Validation set,Found >=10 mm (>=2 readers),85/88,84/88,85/88,By nodule size
+Validation set,Nodule-free scans with no false alarm,10/20,9/20,10/20,Scan-level specificity
+Validation set,Found at 0.125 false alarms/scan (>=2 readers),55.2%,52.4%,57.9%,FROC curve point
+Validation set,Found at 0.25 false alarms/scan (>=2 readers),64.5%,64.5%,66.9%,FROC curve point
+Validation set,Found at 0.5 false alarms/scan (>=2 readers),76.9%,73.8%,77.2%,FROC curve point
+Validation set,Found at 1 false alarms/scan (>=2 readers),84.5%,85.2%,86.2%,FROC curve point
+Validation set,Found at 2 false alarms/scan (>=2 readers),89.7%,89.7%,90.3%,FROC curve point
+Validation set,Found at 4 false alarms/scan (>=2 readers),93.8%,92.4%,94.5%,FROC curve point
+Validation set,Found at 8 false alarms/scan (>=2 readers),96.2%,96.9%,97.2%,FROC curve point
+Validation set,True positive slices,1372,1371,1314,Nodule slice with a correct box
+Validation set,False negative slices,690,691,748,Nodule slice with no correct box
+Validation set,False positive slices,527,518,383,Nodule-free slice with a box
+Validation set,True negative slices,30145,30154,30289,Nodule-free slice with no box
+Validation set,Slice sensitivity,66.5%,66.5%,63.7%,TP / (TP + FN)
+Validation set,Slice specificity,98.3%,98.3%,98.8%,TN / (TN + FP)
+Validation set,Slice accuracy,96.3%,96.3%,96.5%,(TP + TN) / all slices; high because ~94% of slices have no nodule
+Validation set,Slice balanced accuracy,82.4%,82.4%,81.2%,Average of sensitivity and specificity
+Validation set,Slice precision,72.2%,72.6%,77.4%,TP / (TP + FP)
+Validation set,Slice F1,0.693,0.694,0.699,Balance of precision and sensitivity

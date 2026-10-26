@@ -1,0 +1,25 @@
+metric,"v1 (YOLO26s, 640)","v2 (YOLO26s, 1024)",note
+Model / image size,"YOLO26s, 640","YOLO26s, 1024",
+Epochs trained (stopped by early stopping),55,47,patience 20
+Best epoch (best.pt),35,27,
+"TRAINING VALIDATION (val-check set, 4,324 slices), best epoch",,,
+precision,0.7962,0.8212,at the F1 peak
+recall (sensitivity),0.7193,0.7195,at the F1 peak
+F1,0.7558,0.767,
+mAP50,0.7786,0.7984,all confidences
+mAP50-95,0.4729,0.4817,all confidences
+F1-peak confidence on validation (used for the confusion matrix),0.29,0.357,read from BoxF1_curve.png
+"TEST SET, YOLO model.val (31,655 slices, 2,302 boxes)",,,
+precision,0.6558,0.6541,"at the F1 peak on test (v1 0.51, v2 0.516)"
+recall (sensitivity),0.5552,0.5582,at the F1 peak on test
+F1,0.6013,0.6024,
+mAP50,0.5819,0.5839,all confidences
+mAP50-95,0.357,0.3579,all confidences
+"TEST SET, confusion matrix at the validation-chosen confidence",,,
+confidence threshold,0.29,0.357,
+nodule boxes found (TP),1548,1501,
+nodule boxes missed (FN),754,801,
+false boxes (FP),1885,1458,true negatives cannot be counted in detection
+precision from the matrix,0.4509,0.5073,TP / (TP + FP)
+recall from the matrix,0.6725,0.652,TP / (TP + FN)
+F1 from the matrix,0.5398,0.5706,

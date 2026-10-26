@@ -1,0 +1,127 @@
+{
+  "weights": "/Users/jairustay/Downloads/yolo_runs/yolo26s_img640_e100_b16-2/weights/best.pt",
+  "split": "test",
+  "scans": 141,
+  "slices": 31655,
+  "nodules": 397,
+  "nodules_2plus_readers": 290,
+  "detections": 15226,
+  "candidates": 6745,
+  "froc_all": {
+    "0.125": 0.3451,
+    "0.25": 0.4635,
+    "0.5": 0.5844,
+    "1": 0.6877,
+    "2": 0.7985,
+    "4": 0.8816,
+    "8": 0.9244
+  },
+  "cpm_all": 0.6693,
+  "max_sensitivity_all": 0.9748,
+  "froc_2plus_readers": {
+    "0.125": 0.4414,
+    "0.25": 0.5724,
+    "0.5": 0.7069,
+    "1": 0.8,
+    "2": 0.8862,
+    "4": 0.9483,
+    "8": 0.9655
+  },
+  "cpm_2plus_readers": 0.7601,
+  "max_sensitivity_2plus_readers": 0.9862,
+  "at_threshold": {
+    "threshold": 0.4967,
+    "sensitivity_all": 0.7935,
+    "sensitivity_2plus_readers": 0.8793,
+    "fp_per_scan": 1.929,
+    "nodules_found": "315/397",
+    "by_size_2plus_readers": {
+      "<6 mm": "58/76",
+      "6-10 mm": "112/120",
+      ">=10 mm": "85/94"
+    },
+    "slices": {
+      "tp": 1227,
+      "fn": 805,
+      "fp": 519,
+      "tn": 29104,
+      "sensitivity": 0.6038,
+      "specificity": 0.9825,
+      "specificity_excluding_slices_next_to_a_nodule": 0.9841,
+      "accuracy": 0.9582,
+      "balanced_accuracy": 0.7932,
+      "precision": 0.7027,
+      "f1": 0.6496
+    },
+    "nodule_free_scans": {
+      "scans": 20,
+      "with_no_false_alarm": 10,
+      "specificity": 0.5
+    }
+  },
+  "trade_off": [
+    {
+      "threshold": 0.1,
+      "nodule_sensitivity_2plus": 0.9759,
+      "fp_per_scan": 10.801,
+      "slice_sensitivity": 0.8036,
+      "slice_specificity": 0.9134,
+      "slice_accuracy": 0.9064,
+      "clean_scan_specificity": 0.0
+    },
+    {
+      "threshold": 0.2,
+      "nodule_sensitivity_2plus": 0.9621,
+      "fp_per_scan": 6.489,
+      "slice_sensitivity": 0.7638,
+      "slice_specificity": 0.944,
+      "slice_accuracy": 0.9325,
+      "clean_scan_specificity": 0.05
+    },
+    {
+      "threshold": 0.3,
+      "nodule_sensitivity_2plus": 0.9517,
+      "fp_per_scan": 4.475,
+      "slice_sensitivity": 0.7234,
+      "slice_specificity": 0.961,
+      "slice_accuracy": 0.9458,
+      "clean_scan_specificity": 0.1
+    },
+    {
+      "threshold": 0.4,
+      "nodule_sensitivity_2plus": 0.9276,
+      "fp_per_scan": 3.064,
+      "slice_sensitivity": 0.6673,
+      "slice_specificity": 0.9723,
+      "slice_accuracy": 0.9527,
+      "clean_scan_specificity": 0.25
+    },
+    {
+      "threshold": 0.4967,
+      "nodule_sensitivity_2plus": 0.8793,
+      "fp_per_scan": 1.929,
+      "slice_sensitivity": 0.6038,
+      "slice_specificity": 0.9825,
+      "slice_accuracy": 0.9582,
+      "clean_scan_specificity": 0.5
+    },
+    {
+      "threshold": 0.5,
+      "nodule_sensitivity_2plus": 0.8793,
+      "fp_per_scan": 1.879,
+      "slice_sensitivity": 0.6038,
+      "slice_specificity": 0.9829,
+      "slice_accuracy": 0.9586,
+      "clean_scan_specificity": 0.5
+    },
+    {
+      "threshold": 0.6,
+      "nodule_sensitivity_2plus": 0.8207,
+      "fp_per_scan": 1.043,
+      "slice_sensitivity": 0.5089,
+      "slice_specificity": 0.9907,
+      "slice_accuracy": 0.9598,
+      "clean_scan_specificity": 0.6
+    }
+  ]
+}

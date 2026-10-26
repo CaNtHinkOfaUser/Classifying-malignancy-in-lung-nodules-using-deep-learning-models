@@ -1,0 +1,8 @@
+# YOLO dataset config for the packed training data (yolo_lidc_train.zip or yolo_lidc_train_jpg.zip).
+# Put this file INSIDE the unzipped yolo_lidc folder, next to images/ and labels/.
+# There is no "path:" line on purpose: YOLO then uses the folder this file is in,
+# so it works wherever the folder is (Mac or Colab).
+train: images/train        # 22,050 training slices
+val: val_monitor.txt       # the 4,324 validation-check slices (all val slices with a nodule + sampled ones without)
+names:
+  0: nodule

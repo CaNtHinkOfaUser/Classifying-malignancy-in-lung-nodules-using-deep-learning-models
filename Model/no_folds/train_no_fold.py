@@ -11,6 +11,8 @@ set LIDC_PATCH_DIR to the unzipped patch folder first; see pipeline/ct.py):
     .venv/bin/python Model/no_folds/train_no_fold.py --labels hard --seed 1 --epochs 1      # quick test
     .venv/bin/python Model/no_folds/train_no_fold.py --labels hard --seed 1 --overfit 32    # memorise check
     .venv/bin/python Model/no_folds/train_no_fold.py --labels hard --seed 1 --mask          # CT + box mask
+    .venv/bin/python Model/no_folds/train_no_fold.py --labels hard --seed 1 --mask --loss weighted
+                                                    # class-weighted loss -> runs/cls_no_fold_mask_weighted/
 
 --mask adds the nodule's box mask as a 2nd input channel (masks from
 pipeline/4bbuild_patches.py --masks-only). Mask runs go to runs/cls_no_fold_mask/
@@ -53,6 +55,7 @@ from torch.utils.data import DataLoader, Subset
 sys.path.insert(0, str(Path(__file__).resolve().parent))        # Model/no_folds/: the no-folds Dataset
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))    # Model/: the shared net.py and plots.py
 from dataset_patches_no_fold import CROP, NoduleDataset
+from losses import make_loss
 from net import NoduleNet3D
 
 PROJECT = Path(__file__).resolve().parents[2]        # Model/no_folds/train_no_fold.py -> the project folder
@@ -69,11 +72,16 @@ def parse_args():
     p.add_argument("--weight-decay", type=float, default=1e-4)
     p.add_argument("--overfit", type=int, default=0, help="memorise this many train nodules (a check, not a real run)")
     p.add_argument("--mask", action="store_true", help="add the box mask as a 2nd input channel")
+    p.add_argument("--loss", choices=["ce", "weighted"], default="ce",
+                   help="ce = plain cross-entropy; weighted = class-weighted cross-entropy (Model/losses.py)")
+    p.add_argument("--weight-power", type=float, default=0.5,
+                   help="weighted: class weight = (1 / frequency) ** this. 0.5 = sqrt (mild), 1 = full inverse")
     p.add_argument("--out", type=Path, default=None,
-                   help="default runs/cls_no_fold, or runs/cls_no_fold_mask with --mask")
+                   help="default runs/cls_no_fold, or runs/cls_no_fold_mask with --mask, plus _weighted with --loss weighted")
     args = p.parse_args()
     if args.out is None:
-        args.out = PROJECT / "runs" / ("cls_no_fold_mask" if args.mask else "cls_no_fold")
+        args.out = PROJECT / "runs" / (("cls_no_fold_mask" if args.mask else "cls_no_fold")
+                                       + ("" if args.loss == "ce" else f"_{args.loss}"))
     return args
 
 
@@ -141,13 +149,17 @@ def main():
     model = NoduleNet3D(in_channels=2 if args.mask else 1).to(device)    # "mask" goes into config.json below
     if args.overfit:
         model.dropout.p = 0.0
-    loss_fn = nn.CrossEntropyLoss()        # takes a class index (hard) or 5 probabilities (soft) unchanged
+    # every loss takes a class index (hard) or 5 probabilities (soft) unchanged.
+    # The same loss picks the best epoch on validation, so selection matches training.
+    loss_fn, weights = make_loss(args.loss, train_ds.hard, args.weight_power)   # Model/losses.py
+    loss_fn = loss_fn.to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
     config = {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()}
     config.update(split="patient_split.csv", crop=CROP, device=str(device),
                   train_nodules=len(train_set), val_nodules=len(val_set),
-                  parameters=sum(p.numel() for p in model.parameters()))
+                  parameters=sum(p.numel() for p in model.parameters()),
+                  class_weights=None if weights is None else [round(float(w), 4) for w in weights])
     (out_dir / "config.json").write_text(json.dumps(config, indent=2))
     print(f"{name}: {len(train_set)} train / {len(val_set)} val nodules, {CROP} mm crop, "
           f"cubes loaded in {time.time() - t0:.0f}s, {config['parameters']:,} parameters, device {device}", flush=True)

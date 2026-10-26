@@ -1,0 +1,27 @@
+{
+  "labels": "hard",
+  "seed": 1,
+  "epochs": 300,
+  "patience": 15,
+  "batch": 32,
+  "lr": 0.001,
+  "weight_decay": 0.0001,
+  "overfit": 0,
+  "mask": true,
+  "loss": "weighted",
+  "weight_power": 0.5,
+  "out": "/Users/Rai/Downloads/Classifying-malignancy-in-lung-nodules-using-deep-learning-models/runs/cls_no_fold_mask_weighted",
+  "split": "patient_split.csv",
+  "crop": 40,
+  "device": "mps",
+  "train_nodules": 1305,
+  "val_nodules": 290,
+  "parameters": 292293,
+  "class_weights": [
+    1.2024,
+    1.0152,
+    0.568,
+    0.9515,
+    1.2629
+  ]
+}

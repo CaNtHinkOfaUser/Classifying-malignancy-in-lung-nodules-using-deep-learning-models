@@ -24,7 +24,7 @@ def class_weights(hard, power):
 
 def make_loss(name, train_hard, power=0.5):
     """The loss for --loss NAME, and the class weights it uses (None for plain cross-entropy)."""
-    if name == "weighted":                 # from the training nodules' median ratings, for hard AND soft runs
+    if name == "weighted": # from the training nodules' median ratings, for hard AND soft runs
         weights = class_weights(train_hard, power)
         return nn.CrossEntropyLoss(weight=weights), weights
     return nn.CrossEntropyLoss(), None

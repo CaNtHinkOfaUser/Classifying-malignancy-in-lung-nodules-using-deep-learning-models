@@ -3,7 +3,7 @@
 """Pack what YOLO training needs into two zips for Google Colab.
 
 Run after:  5build_yolo_dataset.py
-Run from:   the pipeline folder that holds ct.py
+Run from:   this folder (Model/YOLO/<version>/pipeline); ct.py comes from the project's pipeline/
 Writes:     /Volumes/Expansion/processed/colab/yolo_lidc_train_jpg.zip   (~3.9 GB, with --jpeg)
             or                          .../yolo_lidc_train.zip       (~10.5 GB, PNG as built)
                 yolo_lidc/images+labels/train   all 22,050 training slices
@@ -36,11 +36,12 @@ from pathlib import Path
 
 from PIL import Image
 
-from ct import DATA, PROJECT
-from yolo_config import JPEG_QUALITY, PROCESSED, YOLO_DIR, to_jpeg
+from yolo_config import JPEG_QUALITY, PROCESSED, SHARED, YOLO_DIR, to_jpeg   # first: it finds ct
+from ct import DATA
 
 OUT = PROCESSED / "colab"
-CODE_FILES = ["ct.py", "yolo_config.py", "5build_yolo_dataset.py", "6train_yolo.py", "7eval_yolo.py", "metrics.py"]
+SHARED_FILES = ["ct.py", "5build_yolo_dataset.py"]                  # from the project's pipeline/
+YOLO_FILES = ["yolo_config.py", "6train_yolo.py", "7eval_yolo.py"]   # from this folder
 DATA_FILES = ["labels_bb_a.csv", "slice_index.csv", "series_index.csv", "nodules_labels.csv",
               "patient_split.csv", "yolo_extra_split.csv", "yolo_index.csv"]
 
@@ -48,8 +49,10 @@ DATA_FILES = ["labels_bb_a.csv", "slice_index.csv", "series_index.csv", "nodules
 def pack_code():
     path = OUT / "lidc_code.zip"
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
-        for name in CODE_FILES:
-            z.write(PROJECT / "pipeline" / name, f"code/pipeline/{name}")
+        for name in SHARED_FILES:
+            z.write(SHARED / name, f"code/pipeline/{name}")
+        for name in YOLO_FILES:
+            z.write(Path(__file__).with_name(name), f"code/pipeline/{name}")
         for name in DATA_FILES:
             z.write(DATA / name, f"code/data/{name}")
     print(f"-> {path} ({path.stat().st_size / 1e6:.0f} MB)")

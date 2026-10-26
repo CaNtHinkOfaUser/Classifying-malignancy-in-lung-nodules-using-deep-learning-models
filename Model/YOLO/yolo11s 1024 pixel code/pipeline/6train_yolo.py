@@ -3,7 +3,7 @@
 """Step 6. Train the YOLO nodule detector.
 
 Run after:  5build_yolo_dataset.py
-Run from:   the pipeline folder that holds ct.py
+Run from:   this folder (Model/YOLO/<version>/pipeline); ct.py comes from the project's pipeline/
 Reads:      /Volumes/Expansion/processed/yolo_lidc/   images, labels, val_monitor.txt
 Writes:     /Volumes/Expansion/processed/yolo_runs/<run name>/
                 weights/best.pt, weights/last.pt, results.csv, args.yaml, plots

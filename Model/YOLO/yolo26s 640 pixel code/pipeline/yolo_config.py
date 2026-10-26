@@ -3,6 +3,11 @@
 """Settings for the YOLO training and evaluation scripts (6train_yolo.py,
 7eval_yolo.py, pack_for_colab.py) that ct.py doesn't have.
 
+ct.py, 5build_yolo_dataset.py and the data/*.csv files are not copied into this
+folder: importing this file puts the project's own pipeline/ folder on the path,
+so the YOLO scripts use the same ct.py as everything else. On Colab,
+pack_for_colab.py puts them all in one folder, which is found the same way.
+
 ct.py stays the one place for the data paths and for how CT is read; this file
 only adds what running on Google Colab needs:
   * the paths can be moved with environment variables, e.g.
@@ -14,9 +19,20 @@ only adds what running on Google Colab needs:
 
 import io
 import os
+import sys
 from pathlib import Path
 
+# the nearest folder above this one with pipeline/ct.py: the project root on the Mac, code/ on Colab
+for _folder in Path(__file__).resolve().parents:
+    if (_folder / "pipeline" / "ct.py").exists():
+        sys.path.insert(0, str(_folder / "pipeline"))
+        break
+else:
+    sys.exit("ct.py not found: keep this folder inside the project (Model/YOLO/<version>/pipeline)")
+
 import ct
+
+SHARED = Path(ct.__file__).parent       # the project's pipeline/: ct.py, 5build_yolo_dataset.py
 
 PROCESSED = Path(os.environ.get("LIDC_PROCESSED", ct.PROCESSED))
 YOLO_DIR = PROCESSED / ct.YOLO_DIR.name

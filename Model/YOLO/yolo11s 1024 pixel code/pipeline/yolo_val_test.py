@@ -6,7 +6,7 @@ This produces exactly what YOLO produces during training: precision, recall,
 mAP50, mAP50-95 and its plots (F1 / precision / recall / PR curves, confusion
 matrix, example predictions).
 
-Run from:   the pipeline folder that holds ct.py and yolo_config.py
+Run from:   this folder (Model/YOLO/<version>/pipeline); ct.py comes from the project's pipeline/
 Reads:      <root>/images/<split>/*.png and <root>/labels/<split>/*.txt
             (default root: /Volumes/Expansion/processed/yolo_lidc, read only)
 Writes:     <run>/<name>/   YOLO's plots, next to the model's run folder

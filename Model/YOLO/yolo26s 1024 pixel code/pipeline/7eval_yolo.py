@@ -4,7 +4,7 @@
 slice of every val or test scan.
 
 Run after:  6train_yolo.py
-Run from:   the pipeline folder that holds ct.py
+Run from:   this folder (Model/YOLO/<version>/pipeline); ct.py comes from the project's pipeline/
 Reads:      yolo_lidc/images/<split>/*.png and yolo_lidc/yolo_index.csv (from 5build_yolo_dataset.py)
             data/labels_bb_a.csv, data/slice_index.csv, data/series_index.csv
 Writes:     <run>/eval_<split>/detections.csv   every box YOLO drew, conf >= CONF_MIN
@@ -56,8 +56,8 @@ import pandas as pd
 from PIL import Image
 from ultralytics import YOLO
 
+from yolo_config import SHARED, YOLO_DIR, to_jpeg      # first: it puts the project's pipeline/ on the path
 from ct import BOXES, load_series_index, load_slice_index
-from yolo_config import YOLO_DIR, to_jpeg
 
 KEY = ["series_instance_uid", "merged_nodule_id"]
 CONF_MIN = 0.01         # keep everything down to this; the threshold is chosen afterwards
@@ -72,7 +72,7 @@ SIZE_NAMES = ["<6 mm", "6-10 mm", ">=10 mm"]
 
 def load_build_module():
     """5build_yolo_dataset.py starts with a digit, so it can't be imported by name."""
-    path = Path(__file__).with_name("5build_yolo_dataset.py")
+    path = SHARED / "5build_yolo_dataset.py"
     spec = importlib.util.spec_from_file_location("build_yolo_dataset", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

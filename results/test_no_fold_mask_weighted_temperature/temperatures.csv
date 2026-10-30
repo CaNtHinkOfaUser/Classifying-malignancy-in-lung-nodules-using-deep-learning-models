@@ -1,0 +1,13 @@
+model,seed,fit_to,T
+A (hard),1,T-hard,0.825
+A (hard),1,T-soft,1.618
+A (hard),2,T-hard,0.796
+A (hard),2,T-soft,1.807
+A (hard),3,T-hard,0.887
+A (hard),3,T-soft,1.918
+B (soft),1,T-hard,0.639
+B (soft),1,T-soft,1.032
+B (soft),2,T-hard,0.616
+B (soft),2,T-soft,0.951
+B (soft),3,T-hard,0.616
+B (soft),3,T-soft,0.985

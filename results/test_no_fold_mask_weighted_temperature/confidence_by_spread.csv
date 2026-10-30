@@ -1,0 +1,25 @@
+model,version,spread,mean_confidence,readers_agreement
+A (hard),raw,0 (agreed),0.668,1.0
+A (hard),raw,1,0.586,0.615
+A (hard),raw,2,0.592,0.538
+A (hard),raw,3+ (disagreed most),0.549,0.44
+A (hard),T-hard,0 (agreed),0.71,1.0
+A (hard),T-hard,1,0.629,0.615
+A (hard),T-hard,2,0.634,0.538
+A (hard),T-hard,3+ (disagreed most),0.589,0.44
+A (hard),T-soft,0 (agreed),0.529,1.0
+A (hard),T-soft,1,0.461,0.615
+A (hard),T-soft,2,0.465,0.538
+A (hard),T-soft,3+ (disagreed most),0.431,0.44
+B (soft),raw,0 (agreed),0.593,1.0
+B (soft),raw,1,0.439,0.615
+B (soft),raw,2,0.459,0.538
+B (soft),raw,3+ (disagreed most),0.441,0.44
+B (soft),T-hard,0 (agreed),0.692,1.0
+B (soft),T-hard,1,0.522,0.615
+B (soft),T-hard,2,0.548,0.538
+B (soft),T-hard,3+ (disagreed most),0.54,0.44
+B (soft),T-soft,0 (agreed),0.596,1.0
+B (soft),T-soft,1,0.441,0.615
+B (soft),T-soft,2,0.461,0.538
+B (soft),T-soft,3+ (disagreed most),0.443,0.44

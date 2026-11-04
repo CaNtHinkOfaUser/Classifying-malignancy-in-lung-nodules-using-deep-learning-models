@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lung Nodule Analyser</title>
+<style>
+  :root {
+    --navy: #1f3a5f; --orange: #e8833a; --teal: #1a9e8f; --red: #c2410c;
+    --bg: #f3f4f7; --card: #ffffff; --ink: #1b2430; --muted: #5a6578; --line: #e3e7ed; --soft: #f3f6fa;
+    --bar: #9aa6b6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --navy: #8fb3e0; --orange: #f0a066; --teal: #4cc3b4; --red: #f08a5d;
+      --bg: #10151c; --card: #18202b; --ink: #e6ebf2; --muted: #9aa6b6; --line: #2a3442; --soft: #1f2935;
+      --bar: #5d6b7e;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+  header { background: #1f3a5f; color: #fff; padding: 22px 16px; }
+  header .wrap, main { max-width: 1100px; margin: 0 auto; }
+  header h1 { margin: 0; font-size: 26px; }
+  header p { margin: 4px 0 0; opacity: .85; }
+  main { padding: 20px 16px 60px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 18px; }
+  .note { font-size: 14px; color: var(--muted); }
+  .warn { border-left: 4px solid var(--orange); padding: 10px 14px; background: var(--soft); border-radius: 8px;
+          font-size: 14px; color: var(--muted); margin-bottom: 18px; }
+  #drop { border: 2px dashed var(--line); border-radius: 12px; padding: 28px 16px; text-align: center; transition: .15s; }
+  #drop.over { border-color: var(--navy); background: var(--soft); }
+  .btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
+  button, label.btn { font: inherit; border: 0; border-radius: 9px; padding: 10px 16px; cursor: pointer;
+                      background: var(--navy); color: #fff; }
+  @media (prefers-color-scheme: dark) { button, label.btn { color: #10151c; } }
+  label.btn.alt, button.alt { background: transparent; color: var(--navy); border: 1.5px solid var(--navy); }
+  button:disabled { opacity: .45; cursor: default; }
+  input[type=file] { display: none; }
+  #picked { margin-top: 12px; font-size: 14px; color: var(--muted); min-height: 21px; }
+  .progress { height: 10px; background: var(--soft); border-radius: 6px; overflow: hidden; margin: 12px 0 6px; }
+  .progress div { height: 100%; width: 0; background: var(--teal); transition: width .3s; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { background: var(--soft); border-radius: 8px; padding: 6px 10px; font-size: 14px; }
+  .chip b { font-variant-numeric: tabular-nums; }
+  h2 { margin: 0 0 12px; font-size: 20px; color: var(--navy); }
+  .nodule { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 20px; }
+  @media (max-width: 760px) { .nodule { grid-template-columns: 1fr; } }
+  .nodule h3 { margin: 0 0 4px; font-size: 18px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .badge { font-size: 13px; padding: 3px 9px; border-radius: 99px; font-weight: 600; }
+  .badge.sus { background: var(--red); color: #fff; }
+  .badge.not { background: var(--soft); color: var(--muted); }
+  .imgs img { display: block; width: 100%; border-radius: 8px; image-rendering: auto; }
+  .views { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+  .views figure { margin: 0; }
+  .views img { image-rendering: pixelated; }
+  .views figcaption { font-size: 12px; color: var(--muted); text-align: center; }
+  .dist { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; align-items: end; height: 150px;
+          border-bottom: 1px solid var(--line); padding-top: 18px; }
+  .dist .col { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+  .dist .bar { width: 100%; max-width: 56px; border-radius: 4px 4px 0 0; background: var(--bar); min-height: 2px; }
+  .dist .bar.hi { background: var(--orange); }
+  .dist .val { font-size: 13px; font-variant-numeric: tabular-nums; margin-bottom: 3px; }
+  .ticks { display: grid; grid-template-columns: repeat(5, 1fr); text-align: center; font-weight: 600; margin-top: 4px; }
+  .ticklab { text-align: center; font-size: 13px; color: var(--muted); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+  .stat { background: var(--soft); border-radius: 10px; padding: 10px 12px; }
+  .stat .k { font-size: 13px; color: var(--muted); }
+  .stat .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .gauge { position: relative; height: 12px; border-radius: 6px; background: var(--soft); margin: 6px 0 2px; }
+  .gauge .fill { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: var(--navy); }
+  .gauge .thr { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--red); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  td, th { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: left; }
+  th { color: var(--muted); font-weight: 600; }
+  details { margin-top: 10px; font-size: 14px; }
+  summary { cursor: pointer; color: var(--navy); }
+  .error { color: var(--red); font-weight: 600; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Lung Nodule Analyser</h1>
+  <p>YOLO11s finds nodules on every CT slice; a 3D CNN trained on radiologists' soft labels rates each one.</p>
+</div></header>
+
+<main>
+  <div class="warn">Research prototype from a student project. It is not a medical device and must not be used
+    for diagnosis. Ratings imitate LIDC-IDRI radiologists' opinions (1 = highly unlikely to 5 = highly suspicious
+    of cancer), not biopsy results. Scans are processed on this computer only.</div>
+
+  <section class="card" id="upload">
+    <h2>1. Upload one CT scan</h2>
+    <div id="drop">
+      <div>Drop a folder of DICOM files, the .dcm files themselves, or a .zip here</div>
+      <div class="btns">
+        <label class="btn">Choose folder<input type="file" id="pickDir" webkitdirectory multiple></label>
+        <label class="btn alt">Choose files or .zip<input type="file" id="pickFiles" multiple accept=".dcm,.zip,application/dicom,application/zip,*/*"></label>
+      </div>
+      <div id="picked"></div>
+    </div>
+    <div class="btns"><button id="go" disabled>Analyse scan</button></div>
+    <div id="run" class="hidden">
+      <div class="progress"><div id="bar"></div></div>
+      <div id="msg" class="note"></div>
+    </div>
+  </section>
+
+  <section id="results" class="hidden">
+    <div class="card">
+      <h2>2. Scan</h2>
+      <div class="chips" id="scanChips"></div>
+      <p class="note" id="detNote"></p>
+    </div>
+    <div id="nodules"></div>
+  </section>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+let files = [];
+
+function setFiles(list) {
+  files = list.filter(f => !f.name.startsWith('.'));
+  const mb = files.reduce((s, f) => s + f.size, 0) / 1e6;
+  $('#picked').textContent = files.length ? `${files.length} file(s), ${mb.toFixed(1)} MB selected` : '';
+  $('#go').disabled = !files.length;
+}
+$('#pickDir').onchange = e => setFiles([...e.target.files]);
+$('#pickFiles').onchange = e => setFiles([...e.target.files]);
+
+// drag and drop, including whole folders
+const drop = $('#drop');
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = async e => {
+  e.preventDefault(); drop.classList.remove('over');
+  const out = [];
+  const walk = entry => new Promise(res => {
+    if (entry.isFile) entry.file(f => { out.push(f); res(); }, res);
+    else if (entry.isDirectory) {
+      const reader = entry.createReader(), all = [];
+      const read = () => reader.readEntries(async ents => {
+        if (!ents.length) { await Promise.all(all.map(walk)); res(); }
+        else { all.push(...ents); read(); }
+      }, res);
+      read();
+    } else res();
+  });
+  const entries = [...e.dataTransfer.items].map(i => i.webkitGetAsEntry && i.webkitGetAsEntry()).filter(Boolean);
+  if (entries.length) await Promise.all(entries.map(walk)); else out.push(...e.dataTransfer.files);
+  setFiles(out);
+};
+
+async function post(url, body) {
+  const r = await fetch(url, { method: 'POST', body });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+
+function progress(frac, msg) {
+  $('#bar').style.width = `${Math.round(frac * 100)}%`;
+  $('#msg').textContent = msg;
+}
+
+$('#go').onclick = async () => {
+  $('#go').disabled = true; $('#run').classList.remove('hidden'); $('#results').classList.add('hidden');
+  try {
+    const { job } = await post('/api/job');
+    let done = 0;
+    const queue = [...files];
+    const worker = async () => {
+      while (queue.length) {
+        const f = queue.shift();
+        await post(`/api/upload?job=${job}&name=${encodeURIComponent(f.name)}`, f);
+        done++;
+        progress(0.15 * done / files.length, `Uploading ${done} of ${files.length} files`);
+      }
+    };
+    await Promise.all([worker(), worker(), worker(), worker()]);
+    await post(`/api/analyze?job=${job}`);
+    while (true) {
+      await new Promise(r => setTimeout(r, 1000));
+      const s = await (await fetch(`/api/status?job=${job}`)).json();
+      progress(0.15 + 0.85 * s.progress, s.message);
+      if (s.status === 'done') { render(s.result); break; }
+      if (s.status === 'error') throw new Error(s.error);
+    }
+  } catch (err) {
+    $('#msg').innerHTML = `<span class="error">Error: ${err.message}</span>`;
+  }
+  $('#go').disabled = !files.length;
+};
+
+const pct = v => `${Math.round(v * 100)}%`;
+const RATING = ['highly unlikely', 'moderately unlikely', 'indeterminate', 'moderately suspicious', 'highly suspicious'];
+
+function distribution(p) {
+  const top = p.indexOf(Math.max(...p));
+  return `<div class="dist">${p.map((v, i) => `<div class="col"><div class="val">${pct(v)}</div>
+    <div class="bar ${i >= 3 ? 'hi' : ''}" style="height:${Math.max(v * 100, 1)}%"
+      title="Rating ${i + 1}: ${pct(v)}"></div></div>`).join('')}</div>
+    <div class="ticks">${[1, 2, 3, 4, 5].map(k => `<div>${k}</div>`).join('')}</div>
+    <div class="ticklab">malignancy rating (orange = suspicious, 4–5)</div>`;
+}
+
+function render(r) {
+  const s = r.scan, d = r.detector;
+  $('#scanChips').innerHTML = [
+    ['Slices', s.slices], ['Pixel', `${s.row_spacing.toFixed(2)} × ${s.col_spacing.toFixed(2)} mm`],
+    ['Slice gap', `${s.z_spacing.toFixed(2)} mm`], ['Series in upload', s.n_series_found],
+    ['Nodules found', d.nodules], ['Time', `${r.seconds} s (${r.device})`],
+  ].map(([k, v]) => `<span class="chip">${k}: <b>${v}</b></span>`).join('');
+  $('#detNote').textContent = `YOLO11s drew ${d.boxes} boxes (down to confidence 0.01) on the slices; joined across ` +
+    `slices they form ${d.candidates_all} 3D candidates, of which ${d.nodules} reach the operating threshold ` +
+    `${d.threshold} chosen on the validation set (test set: 87.6% of nodules found at 1.8 false alarms per scan).`;
+
+  $('#nodules').innerHTML = r.nodules.length ? r.nodules.map(n => {
+    const b = n.cnn.B, a = n.cnn.A;
+    return `<div class="card"><div class="nodule">
+      <div class="imgs">
+        <img src="${n.images.zoom}" alt="Zoomed slice ${n.best_slice} around nodule ${n.id}">
+        <div class="views">${['axial', 'coronal', 'sagittal'].map(v =>
+          `<figure><img src="${n.images[v]}" alt="${v} view of the 40 mm cube"><figcaption>${v}</figcaption></figure>`).join('')}</div>
+        <p class="note">Cube views: CT in red, YOLO's 2D boxes as the mask in blue, overlap magenta.</p>
+        <details><summary>Whole slice ${n.best_slice}</summary><img src="${n.images.slice}" alt="Slice ${n.best_slice}"></details>
+      </div>
+      <div>
+        <h3>Nodule ${n.id}
+          <span class="badge ${b.suspicious ? 'sus' : 'not'}">${b.suspicious ? 'Suspicious' : 'Not suspicious'}</span></h3>
+        <div class="note">Slices ${n.slices[0]}–${n.slices[1]} (clearest on ${n.best_slice}) ·
+          about ${n.size_mm} mm across · YOLO11s confidence ${n.yolo_score.toFixed(2)}</div>
+        <div class="stats">
+          <div class="stat"><div class="k">Predicted rating</div><div class="v">${b.rating}</div>
+            <div class="k">${RATING[b.rating - 1]}</div></div>
+          <div class="stat"><div class="k">Confidence</div><div class="v">${pct(b.confidence)}</div>
+            <div class="k">top probability</div></div>
+          <div class="stat"><div class="k">Suspicion P(4)+P(5)</div><div class="v">${pct(b.p_suspicious)}</div>
+            <div class="gauge"><div class="fill" style="width:${b.p_suspicious * 100}%"></div>
+              <div class="thr" style="left:${b.suspicion_threshold * 100}%"></div></div>
+            <div class="k">red line = threshold ${pct(b.suspicion_threshold)}</div></div>
+        </div>
+        <b>Probability distribution (Model B, soft labels, 3 seeds averaged)</b>
+        ${distribution(b.probabilities)}
+        <details><summary>Compare with Model A (hard labels)</summary>
+          <table><tr><th></th><th>Model B (soft)</th><th>Model A (hard)</th></tr>
+            ${[1, 2, 3, 4, 5].map(k => `<tr><td>P(rating ${k})</td><td>${pct(b.probabilities[k - 1])}</td><td>${pct(a.probabilities[k - 1])}</td></tr>`).join('')}
+            <tr><td>Rating · confidence</td><td>${b.rating} · ${pct(b.confidence)}</td><td>${a.rating} · ${pct(a.confidence)}</td></tr>
+            <tr><td>Suspicion</td><td>${pct(b.p_suspicious)} ${b.suspicious ? '(suspicious)' : ''}</td>
+              <td>${pct(a.p_suspicious)} ${a.suspicious ? '(suspicious)' : ''}</td></tr>
+            <tr><td>Largest seed disagreement</td><td>${pct(b.seed_spread)}</td><td>${pct(a.seed_spread)}</td></tr>
+          </table></details>
+        <details><summary>YOLO11s 2D boxes (${n.boxes.length})</summary>
+          <table><tr><th>Slice</th><th>x, y (px)</th><th>w × h (px)</th><th>conf</th></tr>
+            ${n.boxes.map(x => `<tr><td>${x.slice}</td><td>${x.x}, ${x.y}</td><td>${x.w} × ${x.h}</td><td>${x.conf}</td></tr>`).join('')}
+          </table></details>
+      </div></div></div>`;
+  }).join('') : `<div class="card"><h2>No nodules found</h2><p class="note">No 3D candidate reached the
+    operating threshold. Small nodules (&lt;6 mm) are the ones YOLO11s misses most often.</p></div>`;
+  $('#results').classList.remove('hidden');
+  $('#results').scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

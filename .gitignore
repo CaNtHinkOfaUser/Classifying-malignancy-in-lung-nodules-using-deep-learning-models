@@ -4,3 +4,6 @@ __pycache__/
 *.pyc
 .jupyter/
 .ipynb_checkpoints/
+
+# end-to-end demo: downloaded NLST scans
+end_to_end/nlst/

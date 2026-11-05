@@ -1,7 +1,10 @@
-# Ishaan
-
-"""Where the data lives, and the ONE way this project reads CT.
-
+# Ishaan and Emmaus
+# This is a module contains the paths to all the important stuff
+# It also contains a lot of CT functions to make navigating the dataset
+# easier
+# It also serves as configuration for certain stuff like output paths
+# You can also configure other variables e.g. CUBE_MM
+"""
 The patch cache, the YOLO images and the end-to-end demo all import from here,
 so a nodule is cut out of a scan the same way at training time and at test
 time. If you change how HU is read or how a cube is cut, change it here only.
@@ -12,14 +15,6 @@ Coordinate conventions (checked against the XML and DICOM headers):
     z    = ImagePositionPatient[2] in mm = XML imageZposition
     slice_XXXX.dcm files are sorted by z ASCENDING (RenamingDcm.py did this)
 """
-
-# Emmaus notes
-# Idk why the comments are so dramatic but anyways this code is just a module
-# It contains the paths to all the important stuff
-# It also contains a lot of CT functions to make navigating the dataset
-# easier
-# It also serves as configuration for certain stuff like output paths
-# You can also configure other variables e.g. CUBE_MM
 
 import os
 from pathlib import Path
@@ -69,9 +64,10 @@ def fold_role(fold, val_fold):
     assert val_fold in CV_FOLDS, f"val_fold must be one of {CV_FOLDS}"
     if fold == TEST_FOLD:
         return "test"
-    if fold == val_fold:
+    elif fold == val_fold:
         return "val"
-    return "train"
+    else: 
+        return "train"
 
 
 def series_dir(patient_id, series_uid):

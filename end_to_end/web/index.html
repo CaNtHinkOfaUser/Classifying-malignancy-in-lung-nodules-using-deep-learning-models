@@ -37,10 +37,20 @@
   @media (prefers-color-scheme: dark) { button, label.btn { color: #10151c; } }
   label.btn.alt, button.alt { background: transparent; color: var(--navy); border: 1.5px solid var(--navy); }
   button:disabled { opacity: .45; cursor: default; }
+  button.stop { background: var(--red); color: #fff; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+  button.quit { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.6);
+                padding: 7px 12px; font-size: 14px; flex-shrink: 0; }
+  button.quit:hover { background: rgba(255,255,255,.12); }
   input[type=file] { display: none; }
   #picked { margin-top: 12px; font-size: 14px; color: var(--muted); min-height: 21px; }
   .progress { height: 10px; background: var(--soft); border-radius: 6px; overflow: hidden; margin: 12px 0 6px; }
   .progress div { height: 100%; width: 0; background: var(--teal); transition: width .3s; }
+  #yoloBox { margin-top: 18px; padding: 14px; background: var(--soft); border-radius: 10px; }
+  .ylabel { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .ylabel span { font-variant-numeric: tabular-nums; }
+  .progress.big { height: 18px; background: var(--card); margin: 8px 0 4px; }
+  .progress.big div { background: var(--orange); transition: width .6s; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .chip { background: var(--soft); border-radius: 8px; padding: 6px 10px; font-size: 14px; }
   .chip b { font-variant-numeric: tabular-nums; }
@@ -81,9 +91,12 @@
 </style>
 </head>
 <body>
-<header><div class="wrap">
-  <h1>Lung Nodule Analyser</h1>
-  <p>YOLO11s finds nodules on every CT slice; a 3D CNN trained on radiologists' soft labels rates each one.</p>
+<header><div class="wrap head">
+  <div>
+    <h1>Lung Nodule Analyser</h1>
+    <p>YOLO11s finds nodules on every CT slice; a 3D CNN trained on radiologists' soft labels rates each one.</p>
+  </div>
+  <button id="quit" class="quit" title="Shut down the server (same as Ctrl+C in its terminal)">Quit server</button>
 </div></header>
 
 <main>
@@ -101,10 +114,16 @@
       </div>
       <div id="picked"></div>
     </div>
-    <div class="btns"><button id="go" disabled>Analyse scan</button></div>
+    <div class="btns"><button id="go" disabled>Analyse scan</button>
+      <button id="stop" class="stop hidden">Stop analysis</button></div>
     <div id="run" class="hidden">
       <div class="progress"><div id="bar"></div></div>
       <div id="msg" class="note"></div>
+      <div id="yoloBox" class="hidden">
+        <div class="ylabel"><b>YOLO11s reading the slices</b><span id="yoloCount"></span></div>
+        <div class="progress big"><div id="ybar"></div></div>
+        <div id="yoloEta" class="note"></div>
+      </div>
     </div>
   </section>
 
@@ -166,14 +185,52 @@ function progress(frac, msg) {
   $('#msg').textContent = msg;
 }
 
+// the YOLO stage is the slow part: its own bar, with slices done, speed and time left
+function yoloProgress({ done, total, elapsed }) {
+  $('#yoloBox').classList.remove('hidden');
+  $('#ybar').style.width = `${total ? Math.round(100 * done / total) : 0}%`;
+  $('#yoloCount').textContent = `slice ${done} of ${total}`;
+  if (done >= total && total) {
+    $('#yoloEta').textContent = `All ${total} slices read in ${Math.round(elapsed)} s`;
+  } else if (done > 0 && elapsed > 0) {
+    const rate = done / elapsed, left = Math.ceil((total - done) / rate);
+    $('#yoloEta').textContent = `${rate.toFixed(1)} slices/s · about ${left < 60 ? left + ' s' :
+      Math.floor(left / 60) + ' min ' + (left % 60) + ' s'} left`;
+  } else {
+    $('#yoloEta').textContent = 'Starting the detector…';
+  }
+}
+
+let currentJob = null, stopped = false;
+
+$('#stop').onclick = async () => {
+  stopped = true;
+  $('#stop').disabled = true;
+  $('#msg').textContent = 'Stopping after the current slices…';
+  if (currentJob) await post(`/api/cancel?job=${currentJob}`).catch(() => {});
+};
+
+$('#quit').onclick = async () => {
+  if (!confirm('Shut down the server? Start it again with: .venv/bin/python end_to_end/app.py')) return;
+  stopped = true;
+  if (currentJob) await post(`/api/cancel?job=${currentJob}`).catch(() => {});
+  await post('/api/quit').catch(() => {});
+  document.body.innerHTML = `<main><div class="card"><h2>Server stopped</h2><p class="note">Start it again in a
+    terminal with <code>.venv/bin/python end_to_end/app.py</code>, then reload this page.</p></div></main>`;
+};
+
 $('#go').onclick = async () => {
   $('#go').disabled = true; $('#run').classList.remove('hidden'); $('#results').classList.add('hidden');
+  $('#yoloBox').classList.add('hidden');
+  stopped = false;
+  $('#stop').disabled = false; $('#stop').classList.remove('hidden');
   try {
     const { job } = await post('/api/job');
+    currentJob = job;
     let done = 0;
     const queue = [...files];
     const worker = async () => {
-      while (queue.length) {
+      while (queue.length && !stopped) {
         const f = queue.shift();
         await post(`/api/upload?job=${job}&name=${encodeURIComponent(f.name)}`, f);
         done++;
@@ -181,17 +238,24 @@ $('#go').onclick = async () => {
       }
     };
     await Promise.all([worker(), worker(), worker(), worker()]);
+    if (stopped) { await post(`/api/cancel?job=${job}`); throw new Error('stopped'); }
     await post(`/api/analyze?job=${job}`);
     while (true) {
       await new Promise(r => setTimeout(r, 1000));
       const s = await (await fetch(`/api/status?job=${job}`)).json();
-      progress(0.15 + 0.85 * s.progress, s.message);
+      if (s.status === 'stopped') throw new Error('stopped');
+      if (!stopped) progress(0.15 + 0.85 * s.progress, s.message);
+      if (s.yolo) yoloProgress(s.yolo);
       if (s.status === 'done') { render(s.result); break; }
       if (s.status === 'error') throw new Error(s.error);
     }
   } catch (err) {
-    $('#msg').innerHTML = `<span class="error">Error: ${err.message}</span>`;
+    $('#msg').innerHTML = err.message === 'stopped'
+      ? 'Stopped. Choose a scan and press Analyse to start again.'
+      : `<span class="error">Error: ${err.message}</span>`;
   }
+  currentJob = null;
+  $('#stop').classList.add('hidden');
   $('#go').disabled = !files.length;
 };
 

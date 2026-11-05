@@ -82,7 +82,10 @@ YOLO_SUMMARY = (PROJECT / "results" / "YOLO results" / "yolo11s 1024 pixel resul
 CNN_RUNS = PROJECT / "runs" / "cls_no_fold_mask_weighted"
 SEEDS = (1, 2, 3)
 MODELS = {"B": "soft", "A": "hard"}       # B first: soft labels is the system's answer
-BATCH = 16
+# Slices YOLO reads at once. At 1024 px each slice needs a lot of GPU memory, and on a
+# Mac the GPU shares the RAM: 16 at once ran at 0.3 s/slice with memory free, but at
+# ~7 s/slice on an 8 GB Mac that was already swapping. 4 keeps the peak low.
+BATCH = 4
 
 
 def device():
@@ -164,21 +167,26 @@ def load_yolo():
     return model, imgsz, threshold
 
 
-def detect(scan, yolo, progress=lambda f, msg: None):
-    """Every YOLO box on every slice, then joined into 3D candidates (7eval_yolo.py's rules)."""
+def detect(scan, yolo, progress=lambda f, msg, **kw: None, batch=BATCH):
+    """Every YOLO box on every slice, then joined into 3D candidates (7eval_yolo.py's rules).
+
+    progress() also gets yolo=(slices done, slices in scan), for the website's slice bar.
+    """
     model, imgsz, threshold = yolo
     vol = scan["volume"]
     rows = []
-    for start in range(0, len(vol), BATCH):
-        idx = range(start, min(start + BATCH, len(vol)))
+    progress(0.1, f"YOLO11s: slice 0 of {len(vol)}", yolo=(0, len(vol)))
+    for start in range(0, len(vol), batch):
+        idx = range(start, min(start + batch, len(vol)))
         imgs = [Image.open(io.BytesIO(to_jpeg(Image.fromarray(ct.slice_rgb(vol, i)), JPEG_QUALITY)))
                 for i in idx]
         results = model.predict(imgs, conf=eval_yolo.CONF_MIN, imgsz=imgsz, device=device(),
-                                batch=BATCH, verbose=False)
+                                batch=batch, verbose=False)
         for i, r in zip(idx, results):
             for (x, y, w, h), c in zip(r.boxes.xywh.cpu().numpy(), r.boxes.conf.cpu().numpy()):
                 rows.append(("scan", i, float(x), float(y), float(w), float(h), float(c)))
-        progress(0.1 + 0.7 * (idx[-1] + 1) / len(vol), f"YOLO11s: slice {idx[-1] + 1} of {len(vol)}")
+        progress(0.1 + 0.7 * (idx[-1] + 1) / len(vol), f"YOLO11s: slice {idx[-1] + 1} of {len(vol)}",
+                 yolo=(idx[-1] + 1, len(vol)))
     dets = pd.DataFrame(rows, columns=["series_instance_uid", "pos", "x", "y", "w", "h", "conf"])
     cands = eval_yolo.link_candidates(dets) if len(dets) else []
     kept = merge_overlapping([c for c in cands if max(b["conf"] for b in c["boxes"]) >= threshold])
@@ -331,17 +339,20 @@ def cube_views(cube, mask):
 class Pipeline:
     """Loads both models once; analyse() can then be called for scan after scan."""
 
-    def __init__(self):
+    def __init__(self, batch=BATCH):
         self.dev = device()
+        self.batch = batch
         self.yolo = load_yolo()
         self.nets = load_cnns(self.dev)
 
-    def analyse(self, folder, progress=lambda f, msg: None):
+    def analyse(self, folder, progress=lambda f, msg, **kw: None):
         t0 = time.time()
         progress(0.02, "Reading the DICOM files")
         scan = read_scan(folder)
         progress(0.1, f"Read {len(scan['volume'])} slices; running YOLO11s on every slice")
-        cands, n_boxes, n_cands, threshold = detect(scan, self.yolo, progress)
+        cands, n_boxes, n_cands, threshold = detect(scan, self.yolo, progress, self.batch)
+        if self.dev == "mps":
+            torch.mps.empty_cache()          # hand YOLO's working memory back before the CNNs run
 
         nodules = []
         for k, cand in enumerate(cands, 1):
@@ -385,11 +396,12 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Run YOLO11s + the 3D CNN on one CT scan.")
     p.add_argument("scan", type=Path, help="a folder of DICOM files, or a .zip of one")
     p.add_argument("--out", type=Path, help="write the full result (with images) as JSON")
+    p.add_argument("--batch", type=int, default=BATCH, help=f"slices YOLO reads at once (default {BATCH})")
     args = p.parse_args()
 
     with tempfile.TemporaryDirectory() as tmp:
-        result = Pipeline().analyse(unpack(args.scan, tmp),
-                                    progress=lambda f, msg: print(f"[{f:4.0%}] {msg}", flush=True))
+        result = Pipeline(args.batch).analyse(unpack(args.scan, tmp),
+                                    progress=lambda f, msg, **kw: print(f"[{f:4.0%}] {msg}", flush=True))
     s, d = result["scan"], result["detector"]
     print(f"\n{s['slices']} slices, {s['row_spacing']:.2f} x {s['col_spacing']:.2f} x {s['z_spacing']:.2f} mm, "
           f"{result['seconds']} s on {result['device']}")

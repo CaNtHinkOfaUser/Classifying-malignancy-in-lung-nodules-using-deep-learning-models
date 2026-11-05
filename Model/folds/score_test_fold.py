@@ -207,7 +207,7 @@ def main():
     counts = cbs[cbs["model"] == MODELS["hard"]]["nodules"].tolist()
     ax.set_xticks(SPREAD_GROUPS, [f"{n}\nn = {c}" for n, c in zip(SPREAD_NAMES, counts)])
     ax.set_xlabel("reader disagreement (highest rating minus lowest)")
-    ax.set_ylabel("model's confidence (its top probability)")
+    ax.set_ylabel("model's confidence (top probability)")
     ax.set_title("Model confidence by reader disagreement\n"
                  "TEST fold 0, mean of the 4 cross-validation models (shaded: lowest to highest)", fontsize=10)
     ax.legend(frameon=False)

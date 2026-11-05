@@ -46,7 +46,7 @@ def p_suspicious(predicted_probabilities):
 def ece(probs, hard, n_bins=10):
     """Expected calibration error (ece), top-label version.
 
-    Bin nodules by the model's confidence (its top probability). In each bin
+    Bin nodules by the model's confidence (top probability). In each bin
     compare average confidence with how often the top class was right. ECE is
     the size-weighted average gap: 0 = says 70% and is right 70% of the time.
     """

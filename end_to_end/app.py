@@ -2,7 +2,7 @@
 
 """Local website for the end-to-end system: upload one CT scan, get every nodule back.
 
-Run:    .venv/bin/python end_to_end/app.py            then open http://localhost:8000
+Run:    .venv/bin/python end_to_end/app.py            then open http://localhost:8765
         .venv/bin/python end_to_end/app.py --port 8080
 
 Only Python's standard library is used for the server, so nothing extra has to be
@@ -20,6 +20,7 @@ import shutil
 import sys
 import tempfile
 import threading
+import time
 import traceback
 import uuid
 import zipfile
@@ -41,16 +42,29 @@ RUN_LOCK = threading.Lock()                  # one analysis at a time: both mode
 def new_job():
     job = uuid.uuid4().hex[:12]
     JOBS[job] = {"dir": Path(tempfile.mkdtemp(prefix="nodule_scan_")), "status": "uploading",
-                 "progress": 0.0, "message": "Waiting for files", "result": None, "error": None, "files": 0}
+                 "progress": 0.0, "message": "Waiting for files", "result": None, "error": None, "files": 0,
+                 "yolo": None, "cancel": False}
     return job
+
+
+class Cancelled(Exception):
+    """Raised inside the pipeline at its next progress report after Stop is pressed."""
 
 
 def run_job(job):
     j = JOBS[job]
 
-    def progress(frac, msg):
+    def progress(frac, msg, yolo=None):
+        if j["cancel"]:
+            raise Cancelled
         with LOCK:
             j["progress"], j["message"] = round(frac, 3), msg
+            if yolo is not None:              # (slices done, slices in scan): the page's YOLO bar
+                done, total = yolo
+                if done == 0:
+                    j["yolo_t0"] = time.time()
+                j["yolo"] = {"done": done, "total": total,
+                             "elapsed": round(time.time() - j.get("yolo_t0", time.time()), 1)}
 
     try:
         with RUN_LOCK:
@@ -62,6 +76,8 @@ def run_job(job):
                 z.unlink()
             j["result"] = PIPELINE.analyse(j["dir"], progress)
             j["status"] = "done"
+    except Cancelled:
+        j["status"], j["message"] = "stopped", "Stopped"
     except Exception as e:                                    # shown to the user on the page
         traceback.print_exc()
         j["status"], j["error"] = "error", str(e)
@@ -92,7 +108,7 @@ class Handler(BaseHTTPRequestHandler):
             if j is None:
                 return self._send(404, {"error": "unknown job"})
             with LOCK:
-                return self._send(200, {k: j[k] for k in ("status", "progress", "message", "result", "error")})
+                return self._send(200, {k: j[k] for k in ("status", "progress", "message", "result", "error", "yolo")})
         return self._send(404, {"error": "not found"})
 
     def do_POST(self):
@@ -100,6 +116,11 @@ class Handler(BaseHTTPRequestHandler):
         q = parse_qs(url.query)
         if url.path == "/api/job":
             return self._send(200, {"job": new_job()})
+        if url.path == "/api/quit":                           # the page's Quit button
+            self._send(200, {"ok": True})
+            print("quit from the website", flush=True)
+            threading.Thread(target=self.server.shutdown, daemon=True).start()
+            return None
 
         j = JOBS.get(q.get("job", [""])[0])
         if j is None:
@@ -116,6 +137,13 @@ class Handler(BaseHTTPRequestHandler):
             j["files"] += 1
             return self._send(200, {"ok": True, "files": j["files"]})
 
+        if url.path == "/api/cancel":                         # the page's Stop button
+            j["cancel"] = True
+            if j["status"] == "uploading":                    # never started: nothing to interrupt
+                j["status"] = "stopped"
+                shutil.rmtree(j["dir"], ignore_errors=True)
+            return self._send(200, {"ok": True})
+
         if url.path == "/api/analyze":
             if j["status"] != "uploading":
                 return self._send(409, {"error": "already started"})
@@ -128,10 +156,13 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     global PIPELINE
     p = argparse.ArgumentParser(description="Website for the end-to-end nodule system.")
-    p.add_argument("--port", type=int, default=8000)
+    p.add_argument("--port", type=int, default=8765)
+    p.add_argument("--batch", type=int, default=4,
+                   help="slices YOLO reads at once (default 4). Raise it on a Mac with spare memory; "
+                        "too high a value on 8 GB makes the GPU swap and crawl")
     args = p.parse_args()
     print("loading YOLO11s and the 3D CNNs ...", flush=True)
-    PIPELINE = Pipeline()
+    PIPELINE = Pipeline(batch=args.batch)
     print(f"ready on {PIPELINE.dev}: open http://localhost:{args.port}", flush=True)
     ThreadingHTTPServer(("127.0.0.1", args.port), Handler).serve_forever()
 

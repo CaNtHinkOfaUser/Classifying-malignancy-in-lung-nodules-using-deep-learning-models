@@ -38,7 +38,7 @@ new scan has no radiologist outlines.
 ```bash
 # the website (loads both models once, then analyses scan after scan)
 .venv/bin/python end_to_end/app.py
-# open http://localhost:8000, then drop in a folder of DICOM files or a .zip
+# open http://localhost:8765, then drop in a folder of DICOM files or a .zip
 
 # or one scan from the command line
 .venv/bin/python end_to_end/nodule_pipeline.py <folder or .zip> --out result.json

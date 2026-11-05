@@ -118,12 +118,13 @@ def binary(p_suspicious_values, true_suspicious, threshold):
     tn = int(((predicted_suspicious == 0) & (true_suspicious == 0)).sum())
     fp = int(((predicted_suspicious == 1) & (true_suspicious == 0)).sum())
     return {
+        "tp": tp, "fp": fp, "tn": tn, "fn": fn,
         "threshold": threshold,
         "sensitivity": tp / max(tp + fn, 1), # of the suspicious nodules, proportion labelled suspicious
         "specificity": tn / max(tn + fp, 1), # of the non-suspicious nodules, proportion labelled not suspicious
         "precision": tp / max(tp + fp, 1), # of the nodules labelled suspicious, proportion truly suspicious
         "npv": tn / max(tn + fn, 1), # of the nodules labelled not suspicious, proportion truly not suspicious
-        "tp": tp, "fp": fp, "tn": tn, "fn": fn,
+        
     }
 
 

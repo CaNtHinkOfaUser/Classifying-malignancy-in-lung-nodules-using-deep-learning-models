@@ -1,29 +1,36 @@
 # Lung nodule malignancy: hard vs soft labels (LIDC-IDRI)
-# Python 3.11 (the project's .venv). Install everything with:
-#     .venv/bin/pip install -r requirements.txt
-# Versions are the ones installed in .venv when this file was written.
+#
+# Python 3.11. Step-by-step setup (macOS, Linux, Windows, Google Colab) is in SETUP.md.
+# Short version, from the project folder:
+#     python3.11 -m venv .venv
+#     .venv/bin/pip install -r requirements.txt          (Windows: .venv\Scripts\pip install -r requirements.txt)
+#
+# Pinned to the versions in the project's own .venv, the environment every reported result
+# was produced with. Checked to resolve on macOS (Apple silicon), Linux and Windows.
 
 # ---- core: data, CT reading, metrics ----
 numpy==2.4.1
 pandas==3.0.6
-scipy==1.17.1              # pipeline/ct.py: cube resampling (map_coordinates)
+scipy==1.17.1              # pipeline/ct.py: cube resampling (map_coordinates), temperature scaling
 pydicom==3.0.2             # reading the DICOM slices
-pillow==12.1.0             # YOLO slice images (PNG)
-scikit-learn==1.9.1        # metrics, baselines
-scikit-image==0.26.0       # xml_preprocessing/exclusion_checking.ipynb
-matplotlib==3.10.8         # training figures, Grad-CAM, distributions
+pillow==12.1.0             # YOLO slice images (PNG / JPEG)
+scikit-learn==1.9.1        # metrics, baselines (logistic regression), bootstrap
+matplotlib==3.10.8         # every figure: training curves, confusion matrices, calibration, Grad-CAM
 
 # ---- deep learning ----
-torch==2.14.0              # the 3D CNN (runs on the M2's "mps" GPU)
+torch==2.14.0              # the 3D CNN; uses "mps" on Apple silicon, "cuda" on an NVIDIA GPU, else CPU
 torchvision==0.29.0        # needed by ultralytics
-ultralytics==8.4.157       # YOLO detector (also installs opencv-python, PyYAML, tqdm)
+ultralytics==8.4.157       # YOLO11s / YOLO26s detector (also installs opencv-python, PyYAML, tqdm, requests)
 
 # ---- notebooks: the "LIDC (.venv)" Jupyter kernel ----
-ipykernel==7.1.0           # also provides IPython (used by Model/plots.py show=True)
+ipykernel==7.1.0           # lets VS Code / Jupyter run the notebooks in this environment (also provides IPython)
 
-# ---- optional: only some exploratory notebooks use these ----
+# ---- not needed ----
+# end_to_end/app.py (the local website) uses only Python's standard library.
+# google.colab is imported only inside the Colab notebooks and is already installed on Colab.
+
+# ---- optional: install only if you open these exploratory notebooks ----
+# jupyterlab               # only if you don't use VS Code:  .venv/bin/pip install jupyterlab
 # seaborn                  # dicom_preproccessing/src/HUClipping (HU clipping plots)
-# pylidc                   # pylidc_xml_preprocessing_test only; old package, may clash with numpy 2
-
-# ---- optional: future prototype website ----
-# gradio                   # upload a CT scan, get detections and malignancy ratings
+# polars                   # synthetic_dataset/synthetic yolo model.ipynb
+# pylidc                   # pylidc_xml_preprocessing_test only; old package, clashes with numpy 2
